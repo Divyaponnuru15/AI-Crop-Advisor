@@ -3,15 +3,17 @@ import os
 from groq import Groq
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path=r"C:\ai barath hackthon\AI\ai key\.env")
+# Load local .env if exists (for local testing)
+env_path = os.path.join(os.path.dirname(__file__), "..", "ai key", ".env")
+if os.path.exists(env_path):
+    load_dotenv(env_path)
 
-api_key = os.getenv("GROQ_API_KEY")
-print("Loaded API Key:", api_key)
+api_key = os.environ.get("GROC_API_KEY")
+print("Loaded API Key:", api_key)  # Should show your real key locally
+
 client = Groq(api_key=api_key)
 
-
 def generate_rotation_plan(soil_type, current_crop, season, water_level):
-
     prompt = f"""
     You are an agricultural AI assistant.
 
@@ -34,7 +36,6 @@ def generate_rotation_plan(soil_type, current_crop, season, water_level):
 
     response = client.chat.completions.create(
         model="llama-3.1-8b-instant",
-
         messages=[{"role": "user", "content": prompt}],
         temperature=0.3
     )
@@ -44,8 +45,9 @@ def generate_rotation_plan(soil_type, current_crop, season, water_level):
     try:
         structured_output = json.loads(raw_output)
         return structured_output
-    except:
+    except Exception as e:
         return {
             "error": "Model did not return valid JSON",
-            "raw_output": raw_output
+            "raw_output": raw_output,
+            "exception": str(e)
         }
