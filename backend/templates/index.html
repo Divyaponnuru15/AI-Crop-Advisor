@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Crop Rotation Planner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<!-- Floating Bubbles -->
+<div class="bubbles">
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+</div>
+
+<!-- Container for form + result -->
+<div class="container">
+    <h1>AI Crop Rotation Planner</h1>
+
+    <form id="cropForm">
+        <label>Soil Type</label>
+        <input list="soilTypes" name="soil_type" placeholder="Select or type soil type" required>
+        <datalist id="soilTypes">
+            <option value="Sandy">
+            <option value="Loamy">
+            <option value="Clay">
+            <option value="Silty">
+            <option value="Peaty">
+            <option value="Chalky">
+        </datalist>
+
+        <label>Current Crop</label>
+        <input list="crops" name="current_crop" placeholder="Select or type current crop" required>
+        <datalist id="crops">
+            <option value="Wheat">
+            <option value="Rice">
+            <option value="Maize">
+            <option value="Sugarcane">
+            <option value="Pulses">
+            <option value="Oats">
+        </datalist>
+
+        <label>Season</label>
+        <input list="seasons" name="season" placeholder="Select or type season" required>
+        <datalist id="seasons">
+            <option value="Kharif">
+            <option value="Rabi">
+            <option value="Zaid">
+        </datalist>
+
+        <label>Water Availability</label>
+        <input list="waterLevels" name="water_level" placeholder="Select or type water level" required>
+        <datalist id="waterLevels">
+            <option value="Low">
+            <option value="Medium">
+            <option value="High">
+        </datalist>
+
+        <button type="submit">Generate Plan</button>
+    </form>
+
+    <div id="result"></div>
+</div>
+
+<script>
+const form = document.getElementById('cropForm');
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    const response = await fetch('/generate-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+    const resultDiv = document.getElementById('result');
+
+    if(result.error) {
+        resultDiv.textContent = result.error;
+        resultDiv.style.display = 'block';
+        return;
+    }
+
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = `
+<strong>Recommended Crops:</strong> ${result.recommended_crops.join(", ")}<br>
+<strong>Profit Estimation:</strong> ${result.profit_estimation}<br>
+<strong>Risk Level:</strong> ${result.risk_level}<br>
+<strong>Soil Benefit Score:</strong> ${result.soil_benefit_score}<br>
+<strong>Explanation:</strong> ${result.explanation}
+    `;
+});
+</script>
+
+</body>
+</html>
