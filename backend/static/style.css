@@ -139,3 +139,36 @@ button:hover {
         padding: 25px 20px;
     }
 }
+
+/* ---------------- MOBILE OPTIMIZATION ---------------- */
+@media (max-width: 600px) {
+
+    body {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 1.4rem;
+        text-align: center;
+    }
+
+    form {
+        width: 95%;
+        padding: 18px;
+    }
+
+    input {
+        font-size: 0.95rem;
+        padding: 8px;
+    }
+
+    button {
+        font-size: 1rem;
+        padding: 10px;
+    }
+
+    #result {
+        width: 95%;
+        font-size: 1rem;
+    }
+}
