@@ -1,4 +1,5 @@
-# Virtual environment
+# Virtual environments
+.venv/
 venv/
 ENV/
 env/
@@ -9,7 +10,7 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Environment files (for API keys, secrets)
+# Environment files (API keys, secrets)
 *.env
 ai key/.env
 
@@ -27,3 +28,7 @@ ai key/.env
 
 # Other IDE files
 .idea/
+
+# Ignore system-specific files
+Thumbs.db
+
