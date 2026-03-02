@@ -4,25 +4,34 @@ import re
 from groq import Groq
 from dotenv import load_dotenv
 
-# --- Load local .env if exists (for local testing only) ---
-local_env_path = os.path.join(os.path.dirname(__file__), ".env")
-if os.path.exists(local_env_path):
-    load_dotenv(local_env_path)
-    print("Loaded local .env")
+# -----------------------------
+# Load local .env for local testing only
+# -----------------------------
+env_path = os.path.join(os.path.dirname(__file__), "..", "ai key", ".env")
+if os.path.exists(env_path):
+    load_dotenv(env_path)
 
-# --- Get API key from environment variables ---
+# -----------------------------
+# Get API key from environment
+# -----------------------------
 api_key = os.environ.get("GROQ_API_KEY")
+
 if not api_key:
-    raise ValueError("GROQ_API_KEY is not set! Set it locally in .env or in Render environment variables.")
+    print("⚠️ Warning: GROQ_API_KEY is not set! API calls will fail.")
+    client = None
+else:
+    print("✅ GROQ_API_KEY loaded successfully.")
+    client = Groq(api_key=api_key)
 
-print("Loaded API Key:", api_key)
-
-# --- Initialize Groq client ---
-client = Groq(api_key=api_key)
-
-# --- Function to generate crop rotation plan ---
+# -----------------------------
+# Function to generate rotation plan
+# -----------------------------
 def generate_rotation_plan(soil_type, current_crop, season, water_level, lang="en"):
+    if not client:
+        return {"error": "GROQ_API_KEY not set! Cannot call the Groq API."}
+
     try:
+        # Language mapping
         lang_map = {
             "en": "English",
             "te": "Telugu",
@@ -31,6 +40,7 @@ def generate_rotation_plan(soil_type, current_crop, season, water_level, lang="e
         }
         target_lang = lang_map.get(lang, "English")
 
+        # Prompt for Groq API
         prompt = f"""
 Generate crop rotation recommendation.
 
@@ -54,6 +64,7 @@ Season = {season}
 Water Level = {water_level}
 """
 
+        # Call Groq API
         response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[{"role": "user", "content": prompt}],
@@ -62,15 +73,15 @@ Water Level = {water_level}
 
         raw_output = response.choices[0].message.content.strip()
 
-        # Remove any markdown formatting
+        # Clean markdown if present
         raw_output = raw_output.replace("```json", "").replace("```", "")
 
+        # Extract JSON from response
         match = re.search(r'\{[\s\S]*\}', raw_output)
         if not match:
             return {"error": "Invalid model output", "raw": raw_output}
 
-        clean_json = match.group()
-        structured_output = json.loads(clean_json)
+        structured_output = json.loads(match.group())
 
         print("MODEL OUTPUT:", structured_output)
         return structured_output
