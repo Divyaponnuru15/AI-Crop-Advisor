@@ -8,46 +8,75 @@ env_path = os.path.join(os.path.dirname(__file__), "..", "ai key", ".env")
 if os.path.exists(env_path):
     load_dotenv(env_path)
 
-api_key = os.environ.get("GROC_API_KEY")
+api_key = os.environ.get("GROQ_API_KEY")
 print("Loaded API Key:", api_key)  # Should show your real key locally
 
 client = Groq(api_key=api_key)
 
-def generate_rotation_plan(soil_type, current_crop, season, water_level):
-    prompt = f"""
-    You are an agricultural AI assistant.
-
-    Farmer details:
-    Soil type: {soil_type}
-    Current crop: {current_crop}
-    Season: {season}
-    Water availability: {water_level}
-
-    Respond ONLY in this exact JSON format:
-
-    {{
-      "recommended_crops": ["crop1", "crop2", "crop3"],
-      "soil_benefit_score": number,
-      "risk_level": "Low/Medium/High",
-      "profit_estimation": "Low/Medium/High",
-      "explanation": "short explanation"
-    }}
-    """
-
-    response = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.3
-    )
-
-    raw_output = response.choices[0].message.content
+import json
+import re
+def generate_rotation_plan(soil_type, current_crop, season, water_level, lang="en"):
 
     try:
-        structured_output = json.loads(raw_output)
+
+        lang_map = {
+            "en": "English",
+            "te": "Telugu",
+            "hi": "Hindi",
+            "kn": "Kannada"
+        }
+
+        target_lang = lang_map.get(lang, "English")
+
+        prompt = f"""
+Generate crop rotation recommendation.
+
+Return ONLY valid JSON.
+
+Translate both keys and values into {target_lang}.
+
+Format:
+
+{{
+"recommended_crops": ["crop1","crop2","crop3"],
+"soil_benefit_score": 0.8,
+"risk_level": "Low",
+"profit_estimation": "Medium",
+"explanation": "Short explanation"
+}}
+
+Soil Type = {soil_type}
+Current Crop = {current_crop}
+Season = {season}
+Water Level = {water_level}
+"""
+
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.0
+        )
+
+        raw_output = response.choices[0].message.content.strip()
+
+        # Clean markdown
+        raw_output = raw_output.replace("```json", "").replace("```", "")
+
+        match = re.search(r'\{[\s\S]*\}', raw_output)
+
+        if not match:
+            return {"error": "Invalid model output", "raw": raw_output}
+
+        clean_json = match.group()
+
+        structured_output = json.loads(clean_json)
+
+        print("MODEL OUTPUT:", structured_output)
+
         return structured_output
+
     except Exception as e:
         return {
-            "error": "Model did not return valid JSON",
-            "raw_output": raw_output,
+            "error": "Model failed",
             "exception": str(e)
         }

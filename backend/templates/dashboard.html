@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>{{text.dashboard}}</title>
+
+<style>
+
+.container{
+width:80%;
+margin:auto;
+font-family:Arial;
+}
+
+.home{
+background:green;
+color:white;
+padding:8px 15px;
+border:none;
+}
+
+.logout{
+background:red;
+color:white;
+padding:8px 15px;
+border:none;
+}
+
+table{
+width:100%;
+margin-top:20px;
+border-collapse:collapse;
+}
+
+th,td{
+padding:10px;
+border:1px solid gray;
+}
+
+th{
+background:#ddd;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>{{text.welcome}} {{user[0]}}</h2>
+
+<p>
+{{text.email}} : {{user[1]}}
+</p>
+
+<p>
+{{text.member_since}} : {{user[2]}}
+</p>
+
+<br>
+
+<a href="/">
+<button class="home">
+{{text.home}}
+</button>
+</a>
+
+<a href="/logout">
+<button class="logout">
+{{text.logout}}
+</button>
+</a>
+
+<hr>
+
+<h3>{{text.crop_history}}</h3>
+<h3>{{text.crop_history}}</h3>
+
+<table>
+<tr>
+<th>{{text.soil}}</th>
+<th>{{text.crop}}</th>
+<th>{{text.season}}</th>
+<th>{{text.water}}</th>
+<th>{{text.recommended}}</th>
+<th>{{text.date}}</th>
+<th>{{text.action}}</th>
+</tr>
+
+{% for row in history %}
+<tr>
+<td>{{text.soil_options.get(row[0], row[0])}}</td>
+<td>{{text.crop_options.get(row[1], row[1])}}</td>
+<td>{{text.season_options.get(row[2], row[2])}}</td>
+<td>{{text.water_options.get(row[3], row[3])}}</td>
+<td>{{row[4]}}</td>
+<td>{{row[5]}}</td>
+<td>
+<a href="/delete-history/{{row[6]}}">
+<button style="background:red;color:white;border:none;padding:5px 10px;">
+{{text.delete}}
+</button>
+</a>
+</td>
+</tr>
+{% endfor %}
+</table>
+
+</div>
+
+</body>
+</html>

@@ -1,76 +1,140 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=0.8, maximum-scale=1">
-    <title>AI Crop Rotation Planner</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ text.title }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-<!-- Floating Bubbles -->
-<div class="bubbles">
-    <span></span>
-    <span></span>
-    <span></span>
-    <span></span>
-    <span></span>
-    <span></span>
+<!-- MOBILE HAMBURGER -->
+<div class="hamburger" id="hamburger">
+  <div></div>
+  <div></div>
+  <div></div>
 </div>
 
-<!-- Container for form + result -->
-<div class="container">
-    <h1>AI Crop Rotation Planner</h1>
+<nav class="mobile-nav" id="mobileNav">
+  <a href="/">Home</a>
+  <a href="#aboutSection">How it works</a>
+  {% if session.get("user_id") %}
+      <a href="/dashboard">Dashboard</a>
+      <a href="/logout">Logout</a>
+  {% else %}
+      <a href="/login">Login</a>
+      <a href="/register">Register</a>
+  {% endif %}
+  <form action="/set-language" method="POST">
+      <select name="language" onchange="this.form.submit()" id="mobileLanguage">
+          <option value="" disabled selected>Select Language</option>
+          <option value="en">English</option>
+          <option value="te">తెలుగు</option>
+          <option value="hi">हिंदी</option>
+          <option value="kn">ಕನ್ನಡ</option>
+      </select>
+  </form>
+</nav>
 
-    <form id="cropForm">
-        <label>Soil Type</label>
-        <input list="soilTypes" name="soil_type" placeholder="Select or type soil type" required>
-        <datalist id="soilTypes">
-            <option value="Sandy">
-            <option value="Loamy">
-            <option value="Clay">
-            <option value="Silty">
-            <option value="Peaty">
-            <option value="Chalky">
-        </datalist>
+<!-- DESKTOP NAVBAR -->
+<nav class="top-navbar">
+  <div>
+    <a href="/">{{ text.home }}</a>
+    <a href="#" id="aboutNav">{{ text.how_it_works }}</a>
+  </div>
 
-        <label>Current Crop</label>
-        <input list="crops" name="current_crop" placeholder="Select or type current crop" required>
-        <datalist id="crops">
-            <option value="Wheat">
-            <option value="Rice">
-            <option value="Maize">
-            <option value="Sugarcane">
-            <option value="Pulses">
-            <option value="Oats">
-        </datalist>
-
-        <label>Season</label>
-        <input list="seasons" name="season" placeholder="Select or type season" required>
-        <datalist id="seasons">
-            <option value="Kharif">
-            <option value="Rabi">
-            <option value="Zaid">
-        </datalist>
-
-        <label>Water Availability</label>
-        <input list="waterLevels" name="water_level" placeholder="Select or type water level" required>
-        <datalist id="waterLevels">
-            <option value="Low">
-            <option value="Medium">
-            <option value="High">
-        </datalist>
-
-        <button type="submit">Generate Plan</button>
+  <div style="display:flex; align-items:center; gap:15px;">
+    <form action="/set-language" method="POST">
+        <select name="language" onchange="this.form.submit()" id="language">
+            <option value="" disabled selected>Select Language</option>
+            <option value="en">English</option>
+            <option value="te">తెలుగు</option>
+            <option value="hi">हिंदी</option>
+            <option value="kn">ಕನ್ನಡ</option>
+        </select>
     </form>
 
+    {% if session.get("user_id") %}
+        <span style="color:white;">
+            {{text.welcome}}, {{ session.get("user_name") }}
+        </span>
+        <a href="/dashboard" style="color:white;">{{text.dashboard}}</a>
+        <a href="/logout" style="color:white;">{{text.logout}}</a>
+    {% else %}
+        <a href="/login" style="color:white;">{{text.login}}</a>
+        <a href="/register" style="color:white;">{{text.register}}</a>
+    {% endif %}
+  </div>
+</nav>
+
+<!-- Floating Bubbles -->
+<div class="bubbles">
+    <span></span><span></span><span></span><span></span><span></span><span></span>
+</div>
+
+<!-- Main Container -->
+<div class="container">
+    <h1>{{ text.title }}</h1>
+
+    <!-- About Section -->
+    <div id="aboutSection" style="display:none; margin:20px auto; max-width:800px; padding:20px; background:#f1f1f1; border-radius:8px;">
+        {{ text.about_text }}
+    </div>
+
+    <!-- Crop Form -->
+    <form id="cropForm">
+        <label>{{ text.soil }}</label>
+        <select name="soil_type" required>
+            <option value="" disabled selected>{{ text.soil_placeholder }}</option>
+            {% for value, label in text.soil_options.items() %}
+                <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+        </select>
+
+        <label>{{ text.crop }}</label>
+        <select name="current_crop" required>
+            <option value="" disabled selected>{{ text.crop_placeholder }}</option>
+            {% for value, label in text.crop_options.items() %}
+                <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+        </select>
+
+        <label>{{ text.season }}</label>
+        <select name="season" required>
+            <option value="" disabled selected>{{ text.season_placeholder }}</option>
+            {% for value, label in text.season_options.items() %}
+                <option value="{{ value }}">{{ label }} ({{ text.season_examples[value] }})</option>
+            {% endfor %}
+        </select>
+
+        <label>{{ text.water }}</label>
+        <select name="water_level" required>
+            <option value="" disabled selected>{{ text.water_placeholder }}</option>
+            {% for value, label in text.water_options.items() %}
+                <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">{{ text.submit }}</button>
+    </form>
+
+    <!-- Result -->
     <div id="result"></div>
 </div>
 
+<!-- JS -->
 <script>
+// About section toggle
+const aboutNav = document.getElementById('aboutNav');
+const aboutSection = document.getElementById('aboutSection');
+aboutNav.addEventListener('click', (e) => {
+    e.preventDefault();
+    aboutSection.style.display = (aboutSection.style.display === 'none') ? 'block' : 'none';
+});
+
+// Crop form submission
 const form = document.getElementById('cropForm');
+const resultDiv = document.getElementById('result');
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = new FormData(form);
@@ -83,7 +147,6 @@ form.addEventListener('submit', async (e) => {
     });
 
     const result = await response.json();
-    const resultDiv = document.getElementById('result');
 
     if(result.error) {
         resultDiv.textContent = result.error;
@@ -91,23 +154,35 @@ form.addEventListener('submit', async (e) => {
         return;
     }
 
+    resultDiv.innerHTML = '';
+    for (const [key, value] of Object.entries(result)) {
+        const p = document.createElement('p');
+        p.innerHTML = `<strong>${key}:</strong> ${Array.isArray(value) ? value.join(", ") : value}`;
+        resultDiv.appendChild(p);
+    }
     resultDiv.style.display = 'block';
-    resultDiv.innerHTML = `
-<strong>Recommended Crops:</strong> ${result.recommended_crops.join(", ")}<br>
-<strong>Profit Estimation:</strong> ${result.profit_estimation}<br>
-<strong>Risk Level:</strong> ${result.risk_level}<br>
-<strong>Soil Benefit Score:</strong> ${result.soil_benefit_score}<br>
-<strong>Explanation:</strong> ${result.explanation}
-    `;
 });
-</script>
-<script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/static/sw.js")
-    .then(() => console.log("Service Worker Registered"));
+
+// Mobile hamburger toggle
+const hamburger = document.getElementById("hamburger");
+const mobileNav = document.getElementById("mobileNav");
+
+hamburger.addEventListener("click", () => {
+    mobileNav.style.left = (mobileNav.style.left === "0px") ? "-100%" : "0px";
+});
+
+// Close menu when clicking a link
+mobileNav.querySelectorAll("a").forEach(link => {
+    link.addEventListener("click", () => mobileNav.style.left = "-100%");
+});
+
+// Optional: service worker
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/static/service-worker.js')
+    .then(reg => console.log("Service Worker Registered:", reg))
+    .catch(err => console.error("Service Worker Registration Failed:", err));
 }
 </script>
-
 
 </body>
 </html>

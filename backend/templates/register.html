@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>{{text.register}}</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f4f4f4;
+text-align:center;
+}
+
+.box{
+
+background:white;
+width:400px;
+margin:auto;
+margin-top:100px;
+padding:20px;
+border-radius:10px;
+box-shadow:0px 0px 10px gray;
+
+}
+
+input{
+
+width:90%;
+padding:10px;
+margin:10px;
+}
+
+button{
+
+padding:10px 20px;
+background:green;
+color:white;
+border:none;
+border-radius:5px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>{{text.register}}</h2>
+
+<form method="POST">
+
+<label>{{text.name}}</label>
+
+<br>
+
+<input type="text" name="name" required>
+
+<br>
+
+<label>{{text.email}}</label>
+
+<br>
+
+<input type="email" name="email" required>
+
+<br>
+
+<label>{{text.password}}</label>
+
+<br>
+
+<input type="password" name="password" required>
+
+<br><br>
+
+<button type="submit">
+
+{{text.register}}
+
+</button>
+
+</form>
+
+<br>
+
+<a href="/login">
+
+{{text.login}}
+
+</a>
+
+</div>
+
+</body>
+
+</html>
