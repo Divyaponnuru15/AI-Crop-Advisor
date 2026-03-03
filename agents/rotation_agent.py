@@ -1,37 +1,24 @@
-
 import os
 import json
 import re
 from groq import Groq
-from dotenv import load_dotenv
 
-# -----------------------------
-# Load local .env for local testing only
-# -----------------------------
-env_path = os.path.join(os.path.dirname(__file__), "..", "ai key", ".env")
-if os.path.exists(env_path):
-    load_dotenv(env_path)
-
-# -----------------------------
-# Get API key from environment
-# -----------------------------
-api_key = os.environ.get("GROQ_API_KEY")
-
-if not api_key:
-    print("⚠️ Warning: GROQ_API_KEY is not set! API calls will fail.")
-    client = None
-else:
-    print("✅ GROQ_API_KEY loaded successfully.")
-    client = Groq(api_key=api_key)
 
 # -----------------------------
 # Function to generate rotation plan
 # -----------------------------
 def generate_rotation_plan(soil_type, current_crop, season, water_level, lang="en"):
-    if not client:
+
+    # Get API key safely
+    api_key = os.environ.get("GROQ_API_KEY")
+
+    if not api_key:
         return {"error": "GROQ_API_KEY not set! Cannot call the Groq API."}
 
     try:
+        # Create Groq client INSIDE function (important)
+        client = Groq(api_key=api_key)
+
         # Language mapping
         lang_map = {
             "en": "English",
@@ -39,9 +26,10 @@ def generate_rotation_plan(soil_type, current_crop, season, water_level, lang="e
             "hi": "Hindi",
             "kn": "Kannada"
         }
+
         target_lang = lang_map.get(lang, "English")
 
-        # Prompt for Groq API
+        # Prompt
         prompt = f"""
 Generate crop rotation recommendation.
 
@@ -74,17 +62,16 @@ Water Level = {water_level}
 
         raw_output = response.choices[0].message.content.strip()
 
-        # Clean markdown if present
+        # Remove markdown if present
         raw_output = raw_output.replace("```json", "").replace("```", "")
 
-        # Extract JSON from response
+        # Extract JSON only
         match = re.search(r'\{[\s\S]*\}', raw_output)
         if not match:
             return {"error": "Invalid model output", "raw": raw_output}
 
         structured_output = json.loads(match.group())
 
-        print("MODEL OUTPUT:", structured_output)
         return structured_output
 
     except Exception as e:
