@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, render_template, session, redirect
 import sys
 import os
+from dotenv import load_dotenv
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from agents.rotation_agent import generate_rotation_plan
@@ -10,16 +11,16 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key =  "my_crop_planner_secret_123"
-
+load_dotenv()
 
 # 👇 ADD MYSQL CONFIGURATION HERE
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'Divya@152005'
-app.config['MYSQL_DB'] = 'ai_multi_crop'
 
+app.config['MYSQL_HOST'] = os.getenv("MYSQLHOST", "localhost")
+app.config['MYSQL_USER'] = os.getenv("MYSQLUSER", "root")
+app.config['MYSQL_PASSWORD'] = os.getenv("MYSQLPASSWORD", "")
+app.config['MYSQL_DB'] = os.getenv("MYSQLDATABASE")
+app.config['MYSQL_PORT'] = int(os.getenv("MYSQLPORT", 3306))
 mysql = MySQL(app)
- 
 
 translations = {
     "en": {
