@@ -10,25 +10,9 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Environment files (API keys, secrets)
+# Environment files
 *.env
-ai key/.env
 
-# Jupyter Notebook checkpoints
-.ipynb_checkpoints/
-
-# VS Code settings
+# IDE files
 .vscode/
-
-# macOS files
-.DS_Store
-
-# Logs
-*.log
-
-# Other IDE files
 .idea/
-
-# Ignore system-specific files
-Thumbs.db
-
