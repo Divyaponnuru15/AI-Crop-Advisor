@@ -53,11 +53,10 @@ background:#ddd;
 
 <p>
 {{text.email}} : {{user[1]}}
+<p>
+{{text.member_since}} : {{ user[2].strftime("%d %B %Y") if user[2] else "Not Available" }}
 </p>
 
-<p>
-{{text.member_since}} : {{user[2]}}
-</p>
 
 <br>
 
@@ -76,7 +75,7 @@ background:#ddd;
 <hr>
 
 <h3>{{text.crop_history}}</h3>
-<h3>{{text.crop_history}}</h3>
+
 
 <table>
 <tr>
@@ -84,8 +83,8 @@ background:#ddd;
 <th>{{text.crop}}</th>
 <th>{{text.season}}</th>
 <th>{{text.water}}</th>
-<th>{{text.recommended}}</th>
-<th>{{text.date}}</th>
+<th>{{text.recommended_col}}</th>
+<th>{{text.date_col}}</th>
 <th>{{text.action}}</th>
 </tr>
 

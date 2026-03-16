@@ -10,7 +10,7 @@ from flask_mysqldb import MySQL
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key =  "my_crop_planner_secret_123"
+app.secret_key = os.environ.get("SECRET_KEY")
 load_dotenv()
 
 # 👇 ADD MYSQL CONFIGURATION HERE
@@ -30,10 +30,10 @@ translations = {
         "season": "Season",
         "water": "Water Availability",
         "submit": "Generate Plan",
-        "recommended": "Recommended Crops",
-        "profit": "Profit Estimation",
-        "risk": "Risk Level",
-        "soil_score": "Soil Benefit Score",
+        "recommended_crops": "Recommended Crops",
+        "profit_estimation": "Profit Estimation",
+        "risk_level": "Risk Level",
+        "soil_benefit_score": "Soil Benefit Score",
         "explanation": "Explanation",
 
         "soil_placeholder": "Select or type soil type",
@@ -106,10 +106,10 @@ translations = {
     "season": "కాలం",
     "water": "నీటి లభ్యత",
     "submit": "పథకం సృష్టించు",
-    "recommended": "సిఫార్సు చేసిన పంటలు",
-    "profit": "లాభ అంచనా",
-    "risk": "ప్రమాద స్థాయి",
-    "soil_score": "మట్టి లాభ స్కోరు",
+    "recommended_crops": "సిఫార్సు చేసిన పంటలు",
+    "profit_estimation": "లాభ అంచనా",
+    "risk_level": "ప్రమాద స్థాయి",
+    "soil_benefit_score": "మట్టి లాభ స్కోరు",
     "explanation": "వివరణ",
 
     "soil_placeholder": "మట్టి రకం ఎంచుకోండి లేదా టైప్ చేయండి",
@@ -185,10 +185,10 @@ translations = {
     "season": "मौसम",
     "water": "पानी की उपलब्धता",
     "submit": "योजना बनाएं",
-    "recommended": "अनुशंसित फसलें",
-    "profit": "लाभ अनुमान",
-    "risk": "जोखिम स्तर",
-    "soil_score": "मिट्टी लाभ स्कोर",
+    "recommended_crops": "अनुशंसित फसलें",
+    "profit_estimation": "लाभ अनुमान",
+    "risk_level": "जोखिम स्तर",
+    "soil_benefit_score": "मिट्टी लाभ स्कोर",
     "explanation": "व्याख्या",
 
     "soil_placeholder": "मिट्टी का प्रकार चुनें या लिखें",
@@ -262,10 +262,10 @@ translations = {
     "season": "ಋತು",
     "water": "ನೀರಿನ ಲಭ್ಯತೆ",
     "submit": "ಯೋಜನೆ ರಚಿಸಿ",
-    "recommended": "ಶಿಫಾರಸು ಮಾಡಿದ ಬೆಳೆಗಳು",
-    "profit": "ಲಾಭ ಅಂದಾಜು",
-    "risk": "ಜೊಖಿಂ ಮಟ್ಟ",
-    "soil_score": "ಮಣ್ಣು ಲಾಭ ಅಂಕ",
+    "recommended_crops": "ಶಿಫಾರಸು ಮಾಡಿದ ಬೆಳೆಗಳು",
+    "profit_estimation": "ಲಾಭ ಅಂದಾಜು",
+    "risk_level": "ಜೊಖಿಂ ಮಟ್ಟ",
+    "soil_benefit_score": "ಮಣ್ಣು ಲಾಭ ಅಂಕ",
     "explanation": "ವಿವರಣೆ",
 
     "soil_placeholder": "ಮಣ್ಣಿನ ಪ್ರಕಾರ ಆಯ್ಕೆಮಾಡಿ ಅಥವಾ ಟೈಪ್ ಮಾಡಿ",
@@ -332,6 +332,49 @@ translations = {
     "delete": "ಅಳಿಸು"
 },
 }
+
+value_translations = {
+    "te": {
+        "Low": "తక్కువ",
+        "Medium": "మధ్యస్థం",
+        "High": "ఎక్కువ"
+    },
+    "hi": {
+        "Low": "कम",
+        "Medium": "मध्यम",
+        "High": "अधिक"
+    },
+    "kn": {
+        "Low": "ಕಡಿಮೆ",
+        "Medium": "ಮಧ್ಯಮ",
+        "High": "ಹೆಚ್ಚು"
+    }
+}
+
+def translate_keys(result, lang):
+
+    if lang == "en":
+        return result
+
+    text = translations.get(lang, {})
+    value_map = text.get("water_options", {})
+
+    translated = {}
+
+    for key, value in result.items():
+
+        new_key = text.get(key, key)
+
+        # translate Low / Medium / High
+        if isinstance(value, str) and value.title() in value_map:
+            value = value_map[value.title()]
+
+        translated[new_key] = value
+
+    return translated
+
+
+
 @app.route("/")
 def home():
     lang = session.get("lang", "en")  # Default English
@@ -366,15 +409,15 @@ def generate_plan():
             lang=lang
         )
 
-        print("MODEL OUTPUT:", result)  # Debug
+        print("MODEL OUTPUT:", result)
 
-        # ✅ Check valid JSON
+        # Check valid JSON
         if not isinstance(result, dict):
             return jsonify({
                 "error": "Model did not return valid JSON"
             })
 
-        # ✅ SAVE HISTORY
+        # SAVE HISTORY ONLY IF USER LOGGED IN
         if "user_id" in session:
 
             user_id = session["user_id"]
@@ -382,15 +425,25 @@ def generate_plan():
             cur = mysql.connection.cursor()
 
             cur.execute("""
-            INSERT INTO crop_history
-            (user_id, soil_type, current_crop, season, water_level, recommendation)
-            VALUES (%s,%s,%s,%s,%s,%s)
-            """,(user_id,soil_type,current_crop,season,water_level,str(result)))
+                INSERT INTO crop_history
+                (user_id, soil_type, current_crop, season, water_level, recommendation, created_at)
+                VALUES (%s,%s,%s,%s,%s,%s,NOW())
+            """, (
+                user_id,
+                soil_type,
+                current_crop,
+                season,
+                water_level,
+                ",".join(result["recommended_crops"])
+            ))
 
             mysql.connection.commit()
             cur.close()
 
-        return jsonify(result)
+        # Translate keys
+        translated_result = translate_keys(result, lang)
+
+        return jsonify(translated_result)
 
     except Exception as e:
 
@@ -399,6 +452,7 @@ def generate_plan():
         return jsonify({
             "error": "Server Error"
         })
+
 
 @app.route("/register", methods=["GET","POST"])
 def register():
@@ -474,16 +528,26 @@ def dashboard():
     cur=mysql.connection.cursor()
 
     # User Info
-    cur.execute("SELECT name,email,created_at FROM users WHERE id=%s",(user_id,))
-    user=cur.fetchone()
+    cur.execute(
+    "SELECT name,email,created_at FROM users WHERE id=%s",
+    (user_id,)
+    )
+
+    user = cur.fetchone()
+
+# Fix member since if NULL
+    if user and user[2] is None:
+     from datetime import datetime
+     user = (user[0], user[1], datetime.now())
+   
 
     # Crop History
     cur.execute("""
-SELECT soil_type,current_crop,season,water_level,recommendation,created_at,id
-FROM crop_history
-WHERE user_id=%s
-ORDER BY id DESC
-""",(user_id,))
+    SELECT soil_type,current_crop,season,water_level,recommendation,created_at,id
+    FROM crop_history
+    WHERE user_id=%s
+    ORDER BY id DESC
+    """,(user_id,))
 
     history=cur.fetchall()
 
