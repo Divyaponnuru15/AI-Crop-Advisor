@@ -1,6 +1,6 @@
 {
-  "name": "AI Crop Rotation Planner",
-  "short_name": "CropPlanner",
+  "name": "AI Crop Advisor",
+  "short_name": "Crop Planner",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F1F8E9",

@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ text.title }}</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+<meta name="theme-color" content="#2E7D32">
+<meta name="apple-mobile-web-app-capable" content="yes">
 </head>
 <body>
 
@@ -163,18 +166,23 @@ form.addEventListener('submit', async (e) => {
     resultDiv.style.display = 'block';
 });
 
+
 // Mobile hamburger toggle
 const hamburger = document.getElementById("hamburger");
 const mobileNav = document.getElementById("mobileNav");
 
 hamburger.addEventListener("click", () => {
-    mobileNav.style.left = (mobileNav.style.left === "0px") ? "-100%" : "0px";
+    mobileNav.classList.toggle("active");
 });
 
 // Close menu when clicking a link
 mobileNav.querySelectorAll("a").forEach(link => {
-    link.addEventListener("click", () => mobileNav.style.left = "-100%");
+    link.addEventListener("click", () => {
+        mobileNav.classList.remove("active");
+    });
 });
+
+
 
 // Optional: service worker
 if ('serviceWorker' in navigator) {
@@ -183,6 +191,5 @@ if ('serviceWorker' in navigator) {
     .catch(err => console.error("Service Worker Registration Failed:", err));
 }
 </script>
-
 </body>
 </html>
