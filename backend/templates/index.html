@@ -201,13 +201,7 @@ hamburger.addEventListener("click", () => {
     hamburger.classList.toggle("open"); // <-- needed for X animation
 });
 
-// Close menu when a link is clicked
-mobileNav.querySelectorAll("a").forEach(link => {
-    link.addEventListener("click", () => {
-        mobileNav.classList.remove("active");
-        hamburger.classList.remove("open"); // <-- also remove X
-    });
-});
+
 
 // Optional: close menu when clicking outside
 document.addEventListener("click", (e) => {
