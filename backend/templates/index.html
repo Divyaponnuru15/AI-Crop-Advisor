@@ -22,7 +22,7 @@
 
   <a href="/">{{ text.home }}</a>
 
-  <a href="#aboutSection">{{ text.how_it_works }}</a>
+  <a href="#" id="aboutMobile">{{ text.how_it_works }}</a>
 
   {% if session.get("user_id") %}
       <a href="/dashboard">{{ text.dashboard }}</a>
@@ -140,6 +140,8 @@ aboutNav.addEventListener('click', (e) => {
     aboutSection.style.display = (aboutSection.style.display === 'none') ? 'block' : 'none';
 });
 
+// 🔥 ADD THIS BELOW (MOBILE FIX)
+
 // Crop form submission
 const form = document.getElementById('cropForm');
 const resultDiv = document.getElementById('result');
@@ -176,25 +178,52 @@ form.addEventListener('submit', async (e) => {
 const hamburger = document.getElementById("hamburger");
 const mobileNav = document.getElementById("mobileNav");
 
-hamburger.addEventListener("click", () => {
-    mobileNav.classList.toggle("active");
+const aboutMobile = document.getElementById('aboutMobile');
+
+aboutMobile.addEventListener('click', (e) => {
+    e.preventDefault();
+
+    // toggle section
+    aboutSection.style.display =
+        (aboutSection.style.display === 'none') ? 'block' : 'none';
+
+    // close mobile menu
+    mobileNav.classList.remove("active");
+    hamburger.classList.remove("open");
+
+    // scroll
+    aboutSection.scrollIntoView({ behavior: "smooth" });
 });
 
-// Close menu when clicking a link
+// Toggle mobile nav + hamburger X
+hamburger.addEventListener("click", () => {
+    mobileNav.classList.toggle("active");
+    hamburger.classList.toggle("open"); // <-- needed for X animation
+});
+
+// Close menu when a link is clicked
 mobileNav.querySelectorAll("a").forEach(link => {
     link.addEventListener("click", () => {
         mobileNav.classList.remove("active");
+        hamburger.classList.remove("open"); // <-- also remove X
     });
 });
 
-
-
+// Optional: close menu when clicking outside
+document.addEventListener("click", (e) => {
+    if (!mobileNav.contains(e.target) && !hamburger.contains(e.target)) {
+        mobileNav.classList.remove("active");
+        hamburger.classList.remove("open");
+    }
+});
 // Optional: service worker
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/static/service-worker.js')
     .then(reg => console.log("Service Worker Registered:", reg))
     .catch(err => console.error("Service Worker Registration Failed:", err));
 }
+
+
 </script>
 </body>
 </html>

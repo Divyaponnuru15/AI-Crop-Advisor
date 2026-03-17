@@ -196,8 +196,9 @@ button:hover {
 .hamburger div {
     width: 28px;
     height: 4px;
-    background: #fff; /* white for contrast */
+    background: rgb(8, 132, 8); /* white for contrast */
     border-radius: 3px;
+    transition: all 0.3s ease;
 }
 
 /* ---------------- RESPONSIVE ---------------- */
@@ -214,4 +215,14 @@ button:hover {
         width: 90%;
         margin-top: 100px;
     }
+}
+
+.hamburger.open div:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+.hamburger.open div:nth-child(2) {
+    opacity: 0;
+}
+.hamburger.open div:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
 }
