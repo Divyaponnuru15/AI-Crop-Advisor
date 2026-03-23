@@ -1,6 +1,14 @@
-from flask import Flask, request, jsonify, render_template, session, redirect
+from flask import Flask, request, jsonify, render_template, session, redirect,send_file
+from crops import (
+    normalize_crop,
+    normalize_soil,
+    normalize_season,
+    normalize_water
+)
 import sys
 import os
+from fpdf import FPDF
+import io
 from dotenv import load_dotenv
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -8,12 +16,12 @@ from agents.rotation_agent import generate_rotation_plan
 
 from flask_mysqldb import MySQL
 from werkzeug.security import generate_password_hash, check_password_hash
-
+load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")
-load_dotenv()
 
-# 👇 ADD MYSQL CONFIGURATION HERE
+
+#  MYSQL CONFIGURATION
 
 app.config['MYSQL_HOST'] = os.getenv("MYSQLHOST", "localhost")
 app.config['MYSQL_USER'] = os.getenv("MYSQLUSER", "root")
@@ -54,7 +62,7 @@ translations = {
     "Maize": "Maize",
     "Sugarcane": "Sugarcane",
     "Pulses": "Pulses",
-    "Oats": "Oats"
+    
 },
 
 "season_options": {
@@ -94,7 +102,16 @@ translations = {
 "date_col": "Date",
 "action": "Action",
 "delete": "Delete",
-"explanation": "Explanation"
+"crop_charts": "Crop Charts",
+"explanation": "Explanation",
+"crop_details": "Crop Details",
+"tips": "Tips",
+"explanation_text": "These crops are selected based on soil type, season, and water availability to maximize yield and reduce risk.",
+"tips_list": [
+        "Use proper irrigation methods",
+        "Rotate crops for better soil health",
+        "Monitor weather conditions regularly"
+    ]
 
   },
 
@@ -129,7 +146,7 @@ translations = {
     "Maize": "మొక్కజొన్న",
     "Sugarcane": "చెరకు",
     "Pulses": "పప్పులు",
-    "Oats": "ఓట్స్"
+    
 },
 
     "season_options": {
@@ -174,7 +191,17 @@ translations = {
 "date_col": "తేదీ",
 "action": "చర్య",
 "delete": "తొలగించు",
-"explanation": "వివరణ"
+"crop_charts": "పంటల చార్ట్",
+"explanation": "వివరణ",
+"crop_details": "పంట వివరాలు",
+"tips": "సూచనలు",
+"explanation_text": "ఈ పంటలు మట్టి, సీజన్ మరియు నీటి లభ్యత ఆధారంగా ఎంపిక చేయబడ్డాయి...",
+"tips_list": [
+"సరైన సాగు విధానాలను ఉపయోగించండి",
+"మట్టిని ఆరోగ్యంగా ఉంచడానికి పంటల రోటేషన్ చేయండి",
+"వాతావరణ పరిస్థితులను నియమితంగా గమనించండి"
+ ],
+
 },
 
 
@@ -208,7 +235,7 @@ translations = {
         "Maize": "मक्का",
         "Sugarcane": "गन्ना",
         "Pulses": "दालें",
-        "Oats": "जई"
+        
     },
 
     "season_options": {
@@ -252,7 +279,17 @@ translations = {
 "date_col": "तारीख",
 "action": "कार्रवाई",
 "delete": "हटाएं",
-"explanation": "व्याख्या"
+"crop_charts": "फसल चार्ट",
+"explanation": "व्याख्या",
+"crop_details": "फसल विवरण",
+"tips": "सुझाव",
+
+"explanation_text": "इन फसलों का चयन मिट्टी के प्रकार, मौसम और पानी की उपलब्धता के आधार पर किया गया है ताकि उत्पादन बढ़े और जोखिम कम हो।",
+"tips_list": [
+"सही सिंचाई विधियों का उपयोग करें",
+"मिट्टी के स्वास्थ्य के लिए फसल चक्रीकरण करें",
+"मौसम की परिस्थितियों पर नियमित रूप से नज़र रखें"
+ ],
 
 },
 "kn": {
@@ -285,8 +322,8 @@ translations = {
         "Rice": "ಅಕ್ಕಿ",
         "Maize": "ಮಕ್ಕಿ ಜೋಳ",
         "Sugarcane": "ಕಬ್ಬು",
-        "Pulses": "ಬೇಳೆ",
-        "Oats": "ಓಟ್ಸ್"
+        "Pulses": "ಬೇಳೆ"
+        
     },
 
     "season_options": {
@@ -329,7 +366,16 @@ translations = {
     "recommendation_col": "ಶಿಫಾರಸು",
     "date_col": "ದಿನಾಂಕ",
     "action": "ಕ್ರಿಯೆ",
-    "delete": "ಅಳಿಸು"
+    "delete": "ಅಳಿಸು",
+    "crop_charts": "ಬೆಳೆ ಚಾರ್ಟ್",
+    "crop_details": "ಬೆಳೆ ವಿವರಗಳು",
+    "tips": "ಸಲಹೆಗಳು",
+    "explanation_text": "ಈ ಬೆಳೆಗಳನ್ನು ಮಣ್ಣಿನ ಪ್ರಕಾರ, ಋತು ಮತ್ತು ನೀರಿನ ಲಭ್ಯತೆ ಆಧರಿಸಿ ಆಯ್ಕೆ ಮಾಡಲಾಗಿದೆ, ಉತ್ಪಾದನೆ ಹೆಚ್ಚಿಸಲು ಮತ್ತು ಅಪಾಯವನ್ನು ಕಡಿಮೆ ಮಾಡಲು.",
+    "tips_list": [
+      "ಸರಿಯಾದ ನಿಬಂಧನೆ ವಿಧಾನಗಳನ್ನು ಬಳಸಿ",
+      "ಮಣ್ಣಿನ ಆರೋಗ್ಯಕ್ಕಾಗಿ ಬೆಳೆ ರೋಟೇಶನ್ ಮಾಡಿ",
+      "ಹವಾಮಾನ ಪರಿಸ್ಥಿತಿಗಳನ್ನು ನಿಯಮಿತವಾಗಿ ಗಮನಿಸಿ"
+ ]
 },
 }
 
@@ -372,7 +418,33 @@ def translate_keys(result, lang):
         translated[new_key] = value
 
     return translated
+def reverse_translate(value, field, lang):
+    if lang == "en":
+        return value
 
+    options = translations.get(lang, {}).get(field, {})
+
+    for eng, translated in options.items():
+        if value.strip() == translated.strip():  
+            return eng
+
+    return value
+
+
+def translate_crops(crops_str, lang):
+    if not crops_str:
+        return "N/A"
+    crops = [crop.strip() for crop in crops_str.split(",")]
+    if lang == "en":
+        return ", ".join(crops)
+
+    text = translations.get(lang, {})
+    crop_options = text.get("crop_options", {})
+
+    translated = []
+    for crop in crops:
+        translated.append(crop_options.get(crop, crop))
+    return ", ".join(translated)
 
 
 @app.route("/")
@@ -391,14 +463,30 @@ def set_language():
 def generate_plan():
 
     data = request.json
-
-    soil_type = data.get("soil_type")
-    current_crop = data.get("current_crop")
-    season = data.get("season")
-    water_level = data.get("water_level")
-
     lang = session.get("lang", "en")
 
+    # Reverse-translate inputs if not English
+    soil_input = data.get("soil_type", "").strip()
+    crop_input = data.get("current_crop", "").strip()
+    season_input = data.get("season", "").strip()
+    water_input = data.get("water_level", "").strip()
+
+    soil_type = normalize_soil(reverse_translate(soil_input, "soil_options", lang))
+    current_crop = normalize_crop(reverse_translate(crop_input, "crop_options", lang))
+    season = normalize_season(reverse_translate(season_input, "season_options", lang))
+    water_level = normalize_water(reverse_translate(water_input, "water_options", lang))
+
+    # Dynamic validation
+    if not soil_type:
+     return jsonify({"error": "Please enter valid soil type"})
+    if not current_crop:
+     return jsonify({"error": "Please enter valid crop name"})
+    if not season:
+     return jsonify({"error": "Please enter valid season"})
+    if not water_level:
+     return jsonify({"error": "Please enter valid water level"})
+
+       
     try:
 
         result = generate_rotation_plan(
@@ -416,29 +504,33 @@ def generate_plan():
             return jsonify({
                 "error": "Model did not return valid JSON"
             })
-
+        
         # SAVE HISTORY ONLY IF USER LOGGED IN
         if "user_id" in session:
-
             user_id = session["user_id"]
 
             cur = mysql.connection.cursor()
+            recommendations = result.get("recommended_crops", [])  # fallback to empty list
 
             cur.execute("""
-                INSERT INTO crop_history
-                (user_id, soil_type, current_crop, season, water_level, recommendation, created_at)
-                VALUES (%s,%s,%s,%s,%s,%s,NOW())
+            INSERT INTO crop_history
+            (user_id, soil_type, current_crop, season, water_level, recommendation, created_at)
+            VALUES (%s,%s,%s,%s,%s,%s,NOW())
             """, (
-                user_id,
-                soil_type,
-                current_crop,
-                season,
-                water_level,
-                ",".join(result["recommended_crops"])
+            user_id,
+            soil_type,
+            current_crop,
+            season,
+            water_level,
+            ",".join(recommendations)
             ))
 
             mysql.connection.commit()
             cur.close()
+        else:
+            print("Guest user, crop history not saved.")
+
+        
 
         # Translate keys
         translated_result = translate_keys(result, lang)
@@ -513,10 +605,10 @@ def login():
 def logout():
     session.clear()
     return redirect("/")
+from collections import Counter
 
 @app.route("/dashboard")
 def dashboard():
-
     if "user_id" not in session:
         return redirect("/login")
 
@@ -535,7 +627,7 @@ def dashboard():
 
     user = cur.fetchone()
 
-# Fix member since if NULL
+    
     if user and user[2] is None:
      from datetime import datetime
      user = (user[0], user[1], datetime.now())
@@ -553,10 +645,55 @@ def dashboard():
 
     cur.close()
 
+    # --- Calculate Soil Benefit Scores dynamically ---
+    soil_benefits_dict = {}
+
+    for row in history:
+        soil = (row[0] or "").lower()
+        recommendations = (row[4] or "").split(",")
+
+        for crop in recommendations:
+            crop = crop.strip().lower()
+
+            if not crop:
+               continue
+
+        # Initialize
+            if crop not in soil_benefits_dict:
+               soil_benefits_dict[crop] = 0
+
+        # Soil weight
+            soil_weights = {
+               "loamy": 3,
+               "black": 2,
+                "clay": 1.5,
+                "sandy": 1
+            }
+
+            score = soil_weights.get(soil, 1)
+
+        # Diversity bonus
+            score += len(set(recommendations)) * 0.5
+
+        
+            soil_benefits_dict[crop] += score
+
+    
+    if not soil_benefits_dict:
+        soil_benefits_dict ={}
+
+    # --- Prepare data for Chart.js ---
+    labels = list(soil_benefits_dict.keys())
+    soil_benefits = list(soil_benefits_dict.values())
+
+    
+
     return render_template("dashboard.html",
                            user=user,
                            history=history,
-                           text=text)
+                           text=text,
+                           labels=labels,
+                           soil_benefits=soil_benefits)
 @app.route("/delete-history/<int:id>")
 def delete_history(id):
 
@@ -573,10 +710,173 @@ def delete_history(id):
 
     return redirect("/dashboard")
 
-# <-- Add this at the bottom of app.py before app.run()
+
 @app.route("/offline.html")
 def offline():
     return render_template("offline.html")
+
+
+
+
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.pdfbase import ttfonts
+from reportlab.pdfbase import pdfmetrics
+
+
+import ast
+from datetime import datetime
+from reportlab.pdfgen import canvas
+from reportlab.pdfbase import ttfonts, pdfmetrics
+import io, os
+
+@app.route('/download_result', methods=['POST'])
+def download_result():
+    lang = session.get("lang", "en")
+    text = translations.get(lang, translations["en"])
+
+    # Read form values
+    crop = request.form.get('crop', 'N/A')
+    soil = request.form.get('soil', 'N/A')
+    water = request.form.get('water', 'N/A')
+    season = request.form.get('season', 'N/A')
+    recommended_raw = request.form.get('recommended', '')
+
+    recommended_list = [r.strip() for r in recommended_raw.split(",") if r.strip()]
+    recommended_str = ", ".join(recommended_list) if recommended_list else "N/A"
+
+    # Translate recommended crops
+    recommended_translated = translate_crops(recommended_str, lang)
+
+    # Translate other fields for PDF
+    if lang != "en":
+        crop = text.get("crop_options", {}).get(crop.capitalize(), crop)
+        soil = text.get("soil_options", {}).get(soil.capitalize(), soil)
+        season = text.get("season_options", {}).get(season.capitalize(), season)
+        water = value_translations.get(lang, {}).get(water.capitalize(), water)
+
+    # --- PDF Setup ---
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=(595, 842))  # A4 size
+
+    # Font setup
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    font_dir = os.path.join(base_dir, "fonts")
+
+    if lang == "te":
+        font_path = os.path.join(font_dir, "NotoSansTelugu-Regular.ttf")
+        font_name = "Telugu"
+    elif lang == "hi":
+        font_path = os.path.join(font_dir, "NotoSansDevanagari-Regular.ttf")
+        font_name = "Hindi"
+    elif lang == "kn":
+        font_path = os.path.join(font_dir, "NotoSansKannada-Regular.ttf")
+        font_name = "Kannada"
+    else:
+        font_path = os.path.join(font_dir, "DejaVuSans.ttf")
+        font_name = "Default"
+
+    pdfmetrics.registerFont(ttfonts.TTFont(font_name, font_path))
+    c.setFont(font_name, 22)
+       
+
+    # --- Header ---
+    c.setFillColorRGB(0.2, 0.6, 0.3)
+    c.rect(0, 770, 595, 50, fill=1)  # Full width header
+    c.setFillColorRGB(1, 1, 1)
+    c.drawCentredString(297, 790, text["title"])
+    c.setFillColorRGB(0, 0, 0)
+
+    y = 730
+    line_height = 22  # More spacing
+
+    #  Crop Details Section 
+    c.setFont(font_name, 23)
+    c.drawString(50, y, text["crop_details"])
+    y -= line_height
+    
+    y -= 20
+
+    c.setFont(font_name, 16)
+    c.drawString(50, y, f"{text['crop']}: {crop}")
+    y -= line_height
+    c.drawString(50, y, f"{text['soil']}: {soil}")
+    y -= line_height
+    c.drawString(50, y, f"{text['water']}: {water}")
+    y -= line_height
+    c.drawString(50, y, f"{text['season']}: {season}")
+    y -= line_height
+    c.line(50, y, 545, y)
+
+    # --- Recommended Crops ---
+    c.setFont(font_name, 20)
+    y -= 20
+    c.drawString(50, y, text["recommended_crops"])
+    y -= 30
+    c.setFont(font_name, 16)
+    c.drawString(50, y, recommended_translated)
+    y -= line_height
+    c.line(50, y, 545, y)
+
+    
+    # --- Explanation ---
+    c.setFont(font_name, 20)
+    y -= 20
+    c.drawString(50, y, text["explanation"])
+    y -= 30
+    
+    text_obj = c.beginText(50, y)
+    text_obj.setFont(font_name, 14)
+    
+    line = ""
+    max_width = 450  # max width of line
+    
+    for word in text["explanation_text"].split(" "):
+        test_line = line + word + " "
+        
+        if pdfmetrics.stringWidth(test_line, font_name, 14) < max_width:
+            line = test_line
+        else:
+            text_obj.textLine(line)
+            line = word + " "
+    
+    
+    if line:
+        text_obj.textLine(line)
+    
+    c.drawText(text_obj)
+    
+    y = text_obj.getY() - 10
+    c.line(50, y, 545, y)
+    y -= 20 
+
+    # --- Tips ---
+    
+    c.setFont(font_name, 20)
+    
+    c.drawString(50, y, text["tips"])
+    y -= 24
+    c.setFont(font_name, 16)
+    for tip in text.get("tips_list", []):
+        c.drawString(60, y, f"- {tip}")
+        y -= line_height
+
+    # --- Footer ---
+    c.setFont(font_name, 16)
+    c.setFillColorRGB(0.5, 0.5, 0.5)
+    c.drawString(50, 40, f"Generated on: {datetime.now().strftime('%d-%m-%Y')}")
+    c.drawString(50, 25, "AI Crop Advisor Report")
+
+    c.save()
+    buffer.seek(0)
+
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name="AI_Crop_Result.pdf",
+        mimetype='application/pdf'
+    )
+    
 
 
 if __name__ == "__main__":

@@ -4,28 +4,26 @@ import re
 import unicodedata
 from groq import Groq
 
-# -----------------------------
-# Safe JSON parser
-# -----------------------------
+
+#  JSON parser
+
 def safe_json_parse(raw_output):
-    # Remove markdown
+    
     raw_output = raw_output.replace("```json", "").replace("```", "")
     
     # Normalize Unicode
     clean_output = unicodedata.normalize("NFKC", raw_output)
     clean_output = ''.join(c for c in clean_output if not unicodedata.category(c).startswith("C"))
 
-    # Extract JSON using regex
     match = re.search(r'\{.*\}', clean_output, re.DOTALL)
     if not match:
         return None, clean_output
 
     json_str = match.group()
 
-    # Replace fancy quotes with standard quotes
+    
     json_str = json_str.replace('“', '"').replace('”', '"').replace("‘", "'").replace("’", "'")
 
-    # Remove trailing commas before closing braces
     json_str = re.sub(r',(\s*[}\]])', r'\1', json_str)
 
     try:
@@ -34,9 +32,6 @@ def safe_json_parse(raw_output):
     except Exception as e:
         return None, f"JSON parse error: {e}, raw: {json_str}"
 
-# -----------------------------
-# Generate crop rotation plan
-# -----------------------------
 def generate_rotation_plan(soil_type, current_crop, season, water_level, lang="en"):
     api_key = os.environ.get("GROQ_API_KEY")
     if not api_key:
@@ -45,20 +40,20 @@ def generate_rotation_plan(soil_type, current_crop, season, water_level, lang="e
     try:
         client = Groq(api_key=api_key)
 
-        # -----------------------------
-        # Language-specific settings
-        # -----------------------------
+        
+        # Language-specific 
+        
         lang_map = {"en": "English", "hi": "Hindi", "te": "Telugu", "kn": "Kannada"}
         target_lang = lang_map.get(lang, "English")
 
-        # Crop name maps
+        # Crop name map's
         crop_maps = {
             "hi": {"Moong":"मूंग","Urad":"उड़द","Tur":"तूर","Makka":"मक्का","Wheat":"गेहूं"},
             "te": {"Moong":"మూంగ్","Urad":"ఉరద్","Tur":"తూర్","Makka":"మక్కా","Wheat":"గోధుమ"},
             "kn": {"Moong":"ಹುರಳಿ","Urad":"ಕಾಳುಮರೆ","Tur":"ತೂರು","Makka":"ಮಕ್ಕಾ","Wheat":"ಗೋಧಿ"}
         }
 
-        # Example JSON for prompt (keys in English, values in target language)
+        
         example_json_values = {
             "en": ["Moong","Urad","Tur","Medium","High","Kharif season in loamy soil: Moong, Urad, and Tur improve soil quality and require moderate water."],
             "hi": ["मूंग","उड़द","तूर","मध्यम","अधिक","खरीफ मौसम में दोमट मिट्टी के लिए मूंग, उड़द और तूर की खेती से मिट्टी की गुणवत्ता बढ़ेगी और पानी की आवश्यकता कम होगी।"],
@@ -78,9 +73,7 @@ def generate_rotation_plan(soil_type, current_crop, season, water_level, lang="e
 }}
 """
 
-        # -----------------------------
-        # Prompt
-        # -----------------------------
+        
         prompt = f"""
 You are an agriculture expert that recommends crop rotation.
 
@@ -104,9 +97,9 @@ Example format:
 {example_json}
 """
 
-        # -----------------------------
+        
         # Call Groq API
-        # -----------------------------
+        
         response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[{"role": "user", "content": prompt}],
@@ -115,24 +108,20 @@ Example format:
 
         raw_output = response.choices[0].message.content.strip()
 
-        # -----------------------------
-        # Parse JSON safely
-        # -----------------------------
+        
         structured_output, error = safe_json_parse(raw_output)
         if error:
             return {"error": "Model failed", "exception": error, "raw": raw_output}
 
-        # -----------------------------
+        
         # Validate keys
-        # -----------------------------
+        
         required_keys = ["recommended_crops", "soil_benefit_score", "risk_level", "profit_estimation", "explanation"]
         for key in required_keys:
             if key not in structured_output:
                 return {"error": f"Model output missing '{key}'", "raw": raw_output}
 
-        # -----------------------------
-        # Map crop names to proper script if needed
-        # -----------------------------
+       
         if lang in crop_maps:
             structured_output["recommended_crops"] = [
                 crop_maps[lang].get(c, c) for c in structured_output["recommended_crops"]

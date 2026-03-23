@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-
+    
 <title>{{text.dashboard}}</title>
 
 <style>
@@ -73,6 +73,94 @@ background:#ddd;
 </a>
 
 <hr>
+<h2>{{ text.crop_charts }}</h2>
+
+<canvas id="cropChart" width="400" height="200"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div id="chartData"
+     data-labels='{{ labels | tojson | safe }}'
+     data-soil='{{ soil_benefits | tojson | safe }}'>
+</div>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const chartDiv = document.getElementById('chartData');
+
+    // Parse data from Flask
+    const labels = JSON.parse(chartDiv.dataset.labels);
+    const soilBenefits = JSON.parse(chartDiv.dataset.soil);
+
+    const ctx = document.getElementById('cropChart').getContext('2d');
+
+    
+    if (labels.length === 0 || soilBenefits.length === 0) {
+        
+        ctx.font = "16px Arial";
+        ctx.fillStyle = "gray";
+        ctx.textAlign = "center";
+        ctx.fillText("No data yet", ctx.canvas.width / 2, ctx.canvas.height / 2);
+        return; 
+    }
+
+
+    // Color mapping
+    const colorMap = {
+    "wheat": 'rgba(255, 99, 132, 0.7)',
+    "maize": 'rgba(54, 162, 235, 0.7)',
+    "rice": 'rgba(255, 206, 86, 0.7)',
+    "sugarcane": 'rgba(75, 192, 192, 0.7)',
+    "pulses": 'rgba(153, 102, 255, 0.7)',
+    "oats": 'rgba(255, 159, 64, 0.7)'
+    };
+
+    function getRandomColor() {
+    const r = Math.floor(Math.random() * 255);
+    const g = Math.floor(Math.random() * 255);
+    const b = Math.floor(Math.random() * 255);
+    return `rgba(${r}, ${g}, ${b}, 0.7)`;
+}
+
+    
+     // Assign colors
+const backgroundColors = labels.map(label => {
+    let cleanLabel = label.replace(/[^a-zA-Z]/g, '').toLowerCase();
+    console.log("Original:", label, "| Clean:", cleanLabel);
+
+    return colorMap[cleanLabel] || getRandomColor();
+});
+    
+    const borderColors = backgroundColors.map(c => c.replace('0.7', '1'));
+
+    // Create the Chart
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Soil Benefit Score',
+                data: soilBenefits,
+                backgroundColor: backgroundColors,  
+                borderColor: borderColors,  
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
+
+
 
 <h3>{{text.crop_history}}</h3>
 
@@ -83,7 +171,7 @@ background:#ddd;
 <th>{{text.crop}}</th>
 <th>{{text.season}}</th>
 <th>{{text.water}}</th>
-<th>{{text.recommended_col}}</th>
+<th>{{text.recommendation_col}}</th>
 <th>{{text.date_col}}</th>
 <th>{{text.action}}</th>
 </tr>
@@ -96,18 +184,36 @@ background:#ddd;
 <td>{{text.water_options.get(row[3], row[3])}}</td>
 <td>{{row[4]}}</td>
 <td>{{row[5]}}</td>
+
 <td>
-<a href="/delete-history/{{row[6]}}">
-<button style="background:red;color:white;border:none;padding:5px 10px;">
-{{text.delete}}
-</button>
-</a>
+    <!-- Delete Button -->
+    <a href="/delete-history/{{row[6]}}">
+        <button style="background:red;color:white;border:none;padding:5px 10px;">
+            {{text.delete}}
+        </button>
+    </a>
+
+    <!-- Download PDF Button -->
+    
+<form action="/download_result" method="POST" style="display:inline-block;">
+    <input type="hidden" name="crop" value="{{ row[1] }}">
+    <input type="hidden" name="soil" value="{{ row[0] }}">
+    <input type="hidden" name="water" value="{{ row[3] }}">
+    <input type="hidden" name="season" value="{{ row[2] }}">
+    <!-- Clean recommended crops -->
+    <input type="hidden" name="recommended" 
+           value="{{ row[4] | default('') | replace('[','') | replace(']','') | replace('\'','') }}">
+    <button type="submit" style="background:green;color:white;border:none;padding:5px 10px;">
+        Download PDF
+    </button>
+</form>
+
+   
 </td>
+
 </tr>
 {% endfor %}
 </table>
-
 </div>
-
 </body>
 </html>

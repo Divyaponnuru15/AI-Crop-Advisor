@@ -90,42 +90,48 @@
     </div>
 
     <!-- Crop Form -->
-    <form id="cropForm">
-        <label>{{ text.soil }}</label>
-        <select name="soil_type" required>
-            <option value="" disabled selected>{{ text.soil_placeholder }}</option>
-            {% for value, label in text.soil_options.items() %}
-                <option value="{{ value }}">{{ label }}</option>
-            {% endfor %}
-        </select>
+     <form id="cropForm">
 
-        <label>{{ text.crop }}</label>
-        <select name="current_crop" required>
-            <option value="" disabled selected>{{ text.crop_placeholder }}</option>
-            {% for value, label in text.crop_options.items() %}
-                <option value="{{ value }}">{{ label }}</option>
-            {% endfor %}
-        </select>
+    <!-- SOIL -->
+    <label>{{ text.soil }}</label>
+    <input list="soilOptions" name="soil_type" placeholder="{{ text.soil_placeholder }}" required>
+    <datalist id="soilOptions">
+        {% for value, label in text.soil_options.items() %}
+            <option value="{{ label }}">
+        {% endfor %}
+    </datalist>
 
-        <label>{{ text.season }}</label>
-        <select name="season" required>
-            <option value="" disabled selected>{{ text.season_placeholder }}</option>
-            {% for value, label in text.season_options.items() %}
-                <option value="{{ value }}">{{ label }} ({{ text.season_examples[value] }})</option>
-            {% endfor %}
-        </select>
+    <!-- CROP -->
+    <label>{{ text.crop }}</label>
+    <input list="cropOptions" name="current_crop" placeholder="{{ text.crop_placeholder }}" required>
+    <datalist id="cropOptions">
+        {% for value, label in text.crop_options.items() %}
+            <option value="{{ label }}">
+        {% endfor %}
+    </datalist>
 
-        <label>{{ text.water }}</label>
-        <select name="water_level" required>
-            <option value="" disabled selected>{{ text.water_placeholder }}</option>
-            {% for value, label in text.water_options.items() %}
-                <option value="{{ value }}">{{ label }}</option>
-            {% endfor %}
-        </select>
+    <!-- SEASON -->
+    <label>{{ text.season }}</label>
+    <input list="seasonOptions" name="season" placeholder="{{ text.season_placeholder }}" required>
+    <datalist id="seasonOptions">
+        {% for value, label in text.season_options.items() %}
+            <option value="{{ label }}">
+        {% endfor %}
+    </datalist>
 
-        <button type="submit">{{ text.submit }}</button>
-    </form>
+    <!-- WATER -->
+    <label>{{ text.water }}</label>
+    <input list="waterOptions" name="water_level" placeholder="{{ text.water_placeholder }}" required>
+    <datalist id="waterOptions">
+        {% for value, label in text.water_options.items() %}
+            <option value="{{ label }}">
+        {% endfor %}
+    </datalist>
 
+    <button type="submit">{{ text.submit }}</button>
+
+</form>
+    
     <!-- Result -->
     <div id="result"></div>
 </div>
@@ -140,7 +146,7 @@ aboutNav.addEventListener('click', (e) => {
     aboutSection.style.display = (aboutSection.style.display === 'none') ? 'block' : 'none';
 });
 
-// 🔥 ADD THIS BELOW (MOBILE FIX)
+
 
 // Crop form submission
 const form = document.getElementById('cropForm');
@@ -203,14 +209,14 @@ hamburger.addEventListener("click", () => {
 
 
 
-// Optional: close menu when clicking outside
+// close menu when clicking outside
 document.addEventListener("click", (e) => {
     if (!mobileNav.contains(e.target) && !hamburger.contains(e.target)) {
         mobileNav.classList.remove("active");
         hamburger.classList.remove("open");
     }
 });
-// Optional: service worker
+// service worker
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/static/service-worker.js')
     .then(reg => console.log("Service Worker Registered:", reg))
