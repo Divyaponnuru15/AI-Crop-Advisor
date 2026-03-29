@@ -1,104 +1,206 @@
 <!DOCTYPE html>
 <html>
 <head>
-    
 <title>{{text.dashboard}}</title>
 
 <style>
-
-.container{
-width:80%;
-margin:auto;
-font-family:Arial;
+/* GENERAL STYLES */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
 }
 
+/* CONTAINER */
+.container{
+    width:80%;
+    margin:auto;
+}
+
+/* BUTTONS */
 .home{
-background:green;
-color:white;
-padding:8px 15px;
-border:none;
+    background:green;
+    color:white;
+    padding:8px 15px;
+    border:none;
+    cursor:pointer;
 }
 
 .logout{
-background:red;
-color:white;
-padding:8px 15px;
-border:none;
+    background:red;
+    color:white;
+    padding:8px 15px;
+    border:none;
+    cursor:pointer;
 }
 
+button.theme-btn {
+    margin-bottom: 15px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+/* TABLES */
 table{
-width:100%;
-margin-top:20px;
-border-collapse:collapse;
+    width:100%;
+    margin-top:20px;
+    border-collapse:collapse;
 }
 
 th,td{
-padding:10px;
-border:1px solid gray;
+    padding:10px;
+    border:1px solid gray;
 }
 
 th{
-background:#ddd;
+    background:#ddd;
 }
 
+/* DARK MODE STYLES */
+.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+.dark-mode th {
+    background-color: #333;
+    color: #fff;
+}
+
+.dark-mode td {
+    border-color: #555;
+}
+
+.dark-mode table {
+    border-color: #444;
+}
+
+.dark-mode .home {
+    background: #2E7D32;
+}
+
+.dark-mode .logout {
+    background: #B71C1C;
+}
+
+.dark-mode button.theme-btn {
+    color: #fff;
+    background: #333;
+}
+
+/* LIGHT MODE STYLES */
+.light-mode {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+.light-mode th {
+    background-color: #ddd;
+    color: #000;
+}
+
+.light-mode td {
+    border-color: gray;
+}
+
+.light-mode .home {
+    background: green;
+}
+
+.light-mode .logout {
+    background: red;
+}
+
+.light-mode button.theme-btn {
+    color: #000;
+    background: #eee;
+}
 </style>
 
 </head>
-
-<body>
+<body class="light-mode">
 
 <div class="container">
 
-<h2>{{text.welcome}} {{user[0]}}</h2>
+    <!-- Theme Toggle -->
+    <button id="themeToggle" class="theme-btn">🌙 Dark Mode</button>
 
-<p>
-{{text.email}} : {{user[1]}}
-<p>
-{{text.member_since}} : {{ user[2].strftime("%d %B %Y") if user[2] else "Not Available" }}
-</p>
+    <h2>{{text.welcome}} <span id="username">{{user[0]}}</span></h2>
 
+    <p>{{text.email}} : {{user[1]}}</p>
+    <p>{{text.member_since}} : {{ user[2].strftime("%d %B %Y") if user[2] else "Not Available" }}</p>
 
-<br>
+    <br>
 
-<a href="/">
-<button class="home">
-{{text.home}}
-</button>
-</a>
+    <a href="/"><button class="home">{{text.home}}</button></a>
+    <a href="/logout"><button class="logout">{{text.logout}}</button></a>
 
-<a href="/logout">
-<button class="logout">
-{{text.logout}}
-</button>
-</a>
+    <hr>
+    <h2>{{ text.crop_charts }}</h2>
 
-<hr>
-<h2>{{ text.crop_charts }}</h2>
+    <canvas id="cropChart" width="400" height="200"></canvas>
 
-<canvas id="cropChart" width="400" height="200"></canvas>
+    <div id="chartData"
+         data-labels='{{ labels | tojson | safe }}'
+         data-soil='{{ soil_benefits | tojson | safe }}'>
+    </div>
+
+    <h3>{{text.crop_history}}</h3>
+
+    <table>
+    <tr>
+        <th>{{text.soil}}</th>
+        <th>{{text.crop}}</th>
+        <th>{{text.season}}</th>
+        <th>{{text.water}}</th>
+        <th>{{text.recommendation_col}}</th>
+        <th>{{text.date_col}}</th>
+        <th>{{text.action}}</th>
+    </tr>
+
+    {% for row in history %}
+    <tr>
+        <td>{{text.soil_options.get(row[0], row[0])}}</td>
+        <td>{{text.crop_options.get(row[1], row[1])}}</td>
+        <td>{{text.season_options.get(row[2], row[2])}}</td>
+        <td>{{text.water_options.get(row[3], row[3])}}</td>
+        <td>{{row[4]}}</td>
+        <td>{{row[5]}}</td>
+        <td>
+            <button onclick="confirmDelete('{{ row[6] }}')" 
+                style="background:red;color:white;border:none;padding:5px 10px;">
+                {{ text.delete }}
+            </button>
+            <form action="/download_result" method="POST" style="display:inline-block;">
+                <input type="hidden" name="crop" value="{{ row[1] }}">
+                <input type="hidden" name="soil" value="{{ row[0] }}">
+                <input type="hidden" name="water" value="{{ row[3] }}">
+                <input type="hidden" name="season" value="{{ row[2] }}">
+                <input type="hidden" name="recommended" 
+                       value="{{ row[4] | default('') | replace('[','') | replace(']','') | replace('\'','') }}">
+                <button type="submit" style="background:green;color:white;border:none;padding:5px 10px;">
+                    Download PDF
+                </button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+    </table>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div id="chartData"
-     data-labels='{{ labels | tojson | safe }}'
-     data-soil='{{ soil_benefits | tojson | safe }}'>
-</div>
-
-
-
 <script>
+// CHART DATA
 document.addEventListener("DOMContentLoaded", function() {
     const chartDiv = document.getElementById('chartData');
 
-    // Parse data from Flask
     const labels = JSON.parse(chartDiv.dataset.labels);
     const soilBenefits = JSON.parse(chartDiv.dataset.soil);
 
     const ctx = document.getElementById('cropChart').getContext('2d');
 
-    
     if (labels.length === 0 || soilBenefits.length === 0) {
-        
         ctx.font = "16px Arial";
         ctx.fillStyle = "gray";
         ctx.textAlign = "center";
@@ -106,36 +208,29 @@ document.addEventListener("DOMContentLoaded", function() {
         return; 
     }
 
-
-    // Color mapping
     const colorMap = {
-    "wheat": 'rgba(255, 99, 132, 0.7)',
-    "maize": 'rgba(54, 162, 235, 0.7)',
-    "rice": 'rgba(255, 206, 86, 0.7)',
-    "sugarcane": 'rgba(75, 192, 192, 0.7)',
-    "pulses": 'rgba(153, 102, 255, 0.7)',
-    "oats": 'rgba(255, 159, 64, 0.7)'
+        "wheat": 'rgba(255, 99, 132, 0.7)',
+        "maize": 'rgba(54, 162, 235, 0.7)',
+        "rice": 'rgba(255, 206, 86, 0.7)',
+        "sugarcane": 'rgba(75, 192, 192, 0.7)',
+        "pulses": 'rgba(153, 102, 255, 0.7)',
+        "oats": 'rgba(255, 159, 64, 0.7)'
     };
 
     function getRandomColor() {
-    const r = Math.floor(Math.random() * 255);
-    const g = Math.floor(Math.random() * 255);
-    const b = Math.floor(Math.random() * 255);
-    return `rgba(${r}, ${g}, ${b}, 0.7)`;
-}
+        const r = Math.floor(Math.random() * 255);
+        const g = Math.floor(Math.random() * 255);
+        const b = Math.floor(Math.random() * 255);
+        return `rgba(${r}, ${g}, ${b}, 0.7)`;
+    }
 
-    
-     // Assign colors
-const backgroundColors = labels.map(label => {
-    let cleanLabel = label.replace(/[^a-zA-Z]/g, '').toLowerCase();
-    console.log("Original:", label, "| Clean:", cleanLabel);
+    const backgroundColors = labels.map(label => {
+        let cleanLabel = label.replace(/[^a-zA-Z]/g, '').toLowerCase();
+        return colorMap[cleanLabel] || getRandomColor();
+    });
 
-    return colorMap[cleanLabel] || getRandomColor();
-});
-    
     const borderColors = backgroundColors.map(c => c.replace('0.7', '1'));
 
-    // Create the Chart
     new Chart(ctx, {
         type: 'bar',
         data: {
@@ -148,72 +243,60 @@ const backgroundColors = labels.map(label => {
                 borderWidth: 1
             }]
         },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
     });
 });
+
+// DELETE HISTORY
+function confirmDelete(historyId) {
+    if (confirm("Are you sure you want to delete this history entry?")) {
+        fetch(`/delete-history/${historyId}`)
+        .then(() => {
+            alert("History deleted successfully!");
+            location.reload();
+        })
+        .catch(err => alert("Request failed: " + err));
+    }
+}
+
+// DARK/LIGHT MODE TOGGLE
+const toggleBtn = document.getElementById("themeToggle");
+const username = document.getElementById("username");
+
+// Apply saved theme on page load
+window.onload = () => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+        document.body.classList.add("dark-mode");
+        document.body.classList.remove("light-mode");
+        if (toggleBtn) toggleBtn.textContent = "☀ Light Mode";
+        if (username) username.style.color = "#fff";
+    } else {
+        document.body.classList.add("light-mode");
+        document.body.classList.remove("dark-mode");
+        if (toggleBtn) toggleBtn.textContent = "🌙 Dark Mode";
+        if (username) username.style.color = "#000";
+    }
+};
+
+// Toggle button
+if (toggleBtn) {
+    toggleBtn.addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+        document.body.classList.toggle("light-mode");
+
+        if (document.body.classList.contains("dark-mode")) {
+            toggleBtn.textContent = "☀ Light Mode";
+            localStorage.setItem("theme", "dark");
+            if (username) username.style.color = "#fff";
+        } else {
+            toggleBtn.textContent = "🌙 Dark Mode";
+            localStorage.setItem("theme", "light");
+            if (username) username.style.color = "#000";
+        }
+    });
+}
 </script>
 
-
-
-<h3>{{text.crop_history}}</h3>
-
-
-<table>
-<tr>
-<th>{{text.soil}}</th>
-<th>{{text.crop}}</th>
-<th>{{text.season}}</th>
-<th>{{text.water}}</th>
-<th>{{text.recommendation_col}}</th>
-<th>{{text.date_col}}</th>
-<th>{{text.action}}</th>
-</tr>
-
-{% for row in history %}
-<tr>
-<td>{{text.soil_options.get(row[0], row[0])}}</td>
-<td>{{text.crop_options.get(row[1], row[1])}}</td>
-<td>{{text.season_options.get(row[2], row[2])}}</td>
-<td>{{text.water_options.get(row[3], row[3])}}</td>
-<td>{{row[4]}}</td>
-<td>{{row[5]}}</td>
-
-<td>
-    <!-- Delete Button -->
-    <a href="/delete-history/{{row[6]}}">
-        <button style="background:red;color:white;border:none;padding:5px 10px;">
-            {{text.delete}}
-        </button>
-    </a>
-
-    <!-- Download PDF Button -->
-    
-<form action="/download_result" method="POST" style="display:inline-block;">
-    <input type="hidden" name="crop" value="{{ row[1] }}">
-    <input type="hidden" name="soil" value="{{ row[0] }}">
-    <input type="hidden" name="water" value="{{ row[3] }}">
-    <input type="hidden" name="season" value="{{ row[2] }}">
-    <!-- Clean recommended crops -->
-    <input type="hidden" name="recommended" 
-           value="{{ row[4] | default('') | replace('[','') | replace(']','') | replace('\'','') }}">
-    <button type="submit" style="background:green;color:white;border:none;padding:5px 10px;">
-        Download PDF
-    </button>
-</form>
-
-   
-</td>
-
-</tr>
-{% endfor %}
-</table>
-</div>
 </body>
 </html>

@@ -7,37 +7,62 @@
 <style>
 
 body{
-font-family:Arial;
-background:#f4f4f4;
-text-align:center;
+    font-family:Arial;
+    background:#f4f4f4;
+    text-align:center;
 }
 
 .box{
-
-background:white;
-width:400px;
-margin:auto;
-margin-top:100px;
-padding:20px;
-border-radius:10px;
-box-shadow:0px 0px 10px gray;
-
+    background:white;
+    width:400px;
+    margin:auto;
+    margin-top:100px;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0px 0px 10px gray;
 }
 
 input{
-
-width:90%;
-padding:10px;
-margin:10px;
+    width:100%;
+    padding:10px;
+    margin:10px 0;
+    box-sizing: border-box;
 }
 
 button{
+    padding:10px 20px;
+    background:green;
+    color:white;
+    border:none;
+    border-radius:5px;
+}
 
-padding:10px 20px;
-background:green;
-color:white;
-border:none;
-border-radius:5px;
+/* Fix password box layout */
+.password-box {
+    position: relative;
+    width: 100%;
+}
+
+.password-box input {
+    width: 100%;
+    padding-right: 40px; /* space for eye icon */
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+.toggle-password img {
+    width: 20px; /* Smaller icon */
+    opacity: 0.7;
+}
+
+.toggle-password img:hover {
+    opacity: 1;
 }
 
 </style>
@@ -62,7 +87,12 @@ border-radius:5px;
 <label>{{text.password}}</label>
 <br>
 
-<input type="password" name="password" required>
+<div class="password-box">
+    <input type="password" id="password" name="password" required>
+    <span class="toggle-password" onclick="togglePassword()">
+        <span id="eyeIcon">👁️</span>
+    </span>
+</div>
 
 <br><br>
 
@@ -84,5 +114,19 @@ border-radius:5px;
 
 </div>
 
+<script>
+function togglePassword() {
+    const passwordInput = document.getElementById("password");
+    const eyeIcon = document.getElementById("eyeIcon");
+
+    if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+        eyeIcon.textContent = "🙈";   // hide icon
+    } else {
+        passwordInput.type = "password";
+        eyeIcon.textContent = "👁️";   // show icon
+    }
+}
+</script>
 </body>
 </html>

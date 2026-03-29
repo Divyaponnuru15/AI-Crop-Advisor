@@ -106,6 +106,8 @@ translations = {
 "explanation": "Explanation",
 "crop_details": "Crop Details",
 "tips": "Tips",
+"dark": "Dark Mode",
+"light": "Light Mode",
 "explanation_text": "These crops are selected based on soil type, season, and water availability to maximize yield and reduce risk.",
 "tips_list": [
         "Use proper irrigation methods",
@@ -195,6 +197,8 @@ translations = {
 "explanation": "వివరణ",
 "crop_details": "పంట వివరాలు",
 "tips": "సూచనలు",
+"dark": "డార్క్ మోడ్",
+"light": "లైట్ మోడ్",
 "explanation_text": "ఈ పంటలు మట్టి, సీజన్ మరియు నీటి లభ్యత ఆధారంగా ఎంపిక చేయబడ్డాయి...",
 "tips_list": [
 "సరైన సాగు విధానాలను ఉపయోగించండి",
@@ -283,6 +287,8 @@ translations = {
 "explanation": "व्याख्या",
 "crop_details": "फसल विवरण",
 "tips": "सुझाव",
+"dark": "डार्क मोड",
+"light": "लाइट मोड",
 
 "explanation_text": "इन फसलों का चयन मिट्टी के प्रकार, मौसम और पानी की उपलब्धता के आधार पर किया गया है ताकि उत्पादन बढ़े और जोखिम कम हो।",
 "tips_list": [
@@ -370,6 +376,8 @@ translations = {
     "crop_charts": "ಬೆಳೆ ಚಾರ್ಟ್",
     "crop_details": "ಬೆಳೆ ವಿವರಗಳು",
     "tips": "ಸಲಹೆಗಳು",
+    "dark": "ಡಾರ್ಕ್ ಮೋಡ್",
+    "light": "ಲೈಟ್ ಮೋಡ್",
     "explanation_text": "ಈ ಬೆಳೆಗಳನ್ನು ಮಣ್ಣಿನ ಪ್ರಕಾರ, ಋತು ಮತ್ತು ನೀರಿನ ಲಭ್ಯತೆ ಆಧರಿಸಿ ಆಯ್ಕೆ ಮಾಡಲಾಗಿದೆ, ಉತ್ಪಾದನೆ ಹೆಚ್ಚಿಸಲು ಮತ್ತು ಅಪಾಯವನ್ನು ಕಡಿಮೆ ಮಾಡಲು.",
     "tips_list": [
       "ಸರಿಯಾದ ನಿಬಂಧನೆ ವಿಧಾನಗಳನ್ನು ಬಳಸಿ",

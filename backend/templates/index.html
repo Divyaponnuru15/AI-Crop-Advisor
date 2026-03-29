@@ -11,6 +11,7 @@
 </head>
 <body>
 
+
     <!-- HAMBURGER BUTTON -->
 <div class="hamburger" id="hamburger">
   <div></div>
@@ -34,11 +35,12 @@
 
   <form action="/set-language" method="POST">
       <select name="language" onchange="this.form.submit()" id="mobileLanguage">
-          <option value="" disabled selected>Select Language</option>
-          <option value="en">English</option>
-          <option value="te">తెలుగు</option>
-          <option value="hi">हिंदी</option>
-          <option value="kn">ಕನ್ನಡ</option>
+       
+      <option value="" disabled selected>Select Language</option>
+      <option value="en">English</option>
+      <option value="te">తెలుగు</option>
+      <option value="hi">हिंदी</option>
+      <option value="kn">ಕನ್ನಡ</option>
       </select>
   </form>
 
@@ -46,19 +48,22 @@
 
 <!-- DESKTOP NAVBAR -->
 <nav class="top-navbar">
+    
   <div>
     <a href="/">{{ text.home }}</a>
     <a href="#" id="aboutNav">{{ text.how_it_works }}</a>
+    <button id="themeToggle" class="theme-btn">{{ text.dark_mode }}</button>
   </div>
+
 
   <div style="display:flex; align-items:center; gap:15px;">
     <form action="/set-language" method="POST">
         <select name="language" onchange="this.form.submit()" id="language">
-            <option value="" disabled selected>Select Language</option>
-            <option value="en">English</option>
-            <option value="te">తెలుగు</option>
-            <option value="hi">हिंदी</option>
-            <option value="kn">ಕನ್ನಡ</option>
+           <option value="" disabled selected>Select Language</option>
+           <option value="en">English</option>
+           <option value="te">తెలుగు</option>
+           <option value="hi">हिंदी</option>
+           <option value="kn">ಕನ್ನಡ</option>
         </select>
     </form>
 
@@ -75,6 +80,7 @@
   </div>
 </nav>
 
+
 <!-- Floating Bubbles -->
 <div class="bubbles">
     <span></span><span></span><span></span><span></span><span></span><span></span>
@@ -85,56 +91,74 @@
     <h1>{{ text.title }}</h1>
 
     <!-- About Section -->
-    <div id="aboutSection" style="display:none; margin:20px auto; max-width:800px; padding:20px; background:#f1f1f1; border-radius:8px;">
+    <div id="aboutSection" style="display:none;">
         {{ text.about_text }}
     </div>
 
+   {% if session.get("user_id") %}
+<!-- User is logged in: show crop form & results -->
+<div id="userContent">
+
     <!-- Crop Form -->
-     <form id="cropForm">
+    <form id="cropForm">
+        <!-- SOIL -->
+        <label>{{ text.soil }}</label>
+        <input list="soilOptions" name="soil_type" placeholder="{{ text.soil_placeholder }}" required>
+        <datalist id="soilOptions">
+            {% for value, label in text.soil_options.items() %}
+                <option value="{{ label }}">
+            {% endfor %}
+        </datalist>
 
-    <!-- SOIL -->
-    <label>{{ text.soil }}</label>
-    <input list="soilOptions" name="soil_type" placeholder="{{ text.soil_placeholder }}" required>
-    <datalist id="soilOptions">
-        {% for value, label in text.soil_options.items() %}
-            <option value="{{ label }}">
-        {% endfor %}
-    </datalist>
+        <!-- CROP -->
+        <label>{{ text.crop }}</label>
+        <input list="cropOptions" name="current_crop" placeholder="{{ text.crop_placeholder }}" required>
+        <datalist id="cropOptions">
+            {% for value, label in text.crop_options.items() %}
+                <option value="{{ label }}">
+            {% endfor %}
+        </datalist>
 
-    <!-- CROP -->
-    <label>{{ text.crop }}</label>
-    <input list="cropOptions" name="current_crop" placeholder="{{ text.crop_placeholder }}" required>
-    <datalist id="cropOptions">
-        {% for value, label in text.crop_options.items() %}
-            <option value="{{ label }}">
-        {% endfor %}
-    </datalist>
+        <!-- SEASON -->
+        <label>{{ text.season }}</label>
+        <input list="seasonOptions" name="season" placeholder="{{ text.season_placeholder }}" required>
+        <datalist id="seasonOptions">
+            {% for value, label in text.season_options.items() %}
+                <option value="{{ label }}">
+            {% endfor %}
+        </datalist>
 
-    <!-- SEASON -->
-    <label>{{ text.season }}</label>
-    <input list="seasonOptions" name="season" placeholder="{{ text.season_placeholder }}" required>
-    <datalist id="seasonOptions">
-        {% for value, label in text.season_options.items() %}
-            <option value="{{ label }}">
-        {% endfor %}
-    </datalist>
+        <!-- WATER -->
+        <label>{{ text.water }}</label>
+        <input list="waterOptions" name="water_level" placeholder="{{ text.water_placeholder }}" required>
+        <datalist id="waterOptions">
+            {% for value, label in text.water_options.items() %}
+                <option value="{{ label }}">
+            {% endfor %}
+        </datalist>
 
-    <!-- WATER -->
-    <label>{{ text.water }}</label>
-    <input list="waterOptions" name="water_level" placeholder="{{ text.water_placeholder }}" required>
-    <datalist id="waterOptions">
-        {% for value, label in text.water_options.items() %}
-            <option value="{{ label }}">
-        {% endfor %}
-    </datalist>
+        <button type="submit">{{ text.submit }}</button>
+    </form>
 
-    <button type="submit">{{ text.submit }}</button>
-
-</form>
-    
     <!-- Result -->
     <div id="result"></div>
+
+    <!-- Dashboard Features -->
+    <div id="dashboardFeatures" style="display:none;">
+        <button id="saveHistoryBtn">{{ text.save_history }}</button>
+        <button id="downloadPdfBtn">{{ text.download_pdf }}</button>
+        <button id="viewChartsBtn">{{ text.view_charts }}</button>
+    </div>
+
 </div>
+{% else %}
+<!-- User not logged in: show login/register prompt -->
+<div id="notLoggedIn">
+    <p>{{ text.login_message }}</p>
+    <a href="/login">{{ text.login }}</a> | 
+    <a href="/register">{{ text.register }}</a>
+</div>
+{% endif %}
 
 <!-- JS -->
 <script>
@@ -146,38 +170,60 @@ aboutNav.addEventListener('click', (e) => {
     aboutSection.style.display = (aboutSection.style.display === 'none') ? 'block' : 'none';
 });
 
-
-
 // Crop form submission
 const form = document.getElementById('cropForm');
 const resultDiv = document.getElementById('result');
-form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
 
-    const response = await fetch('/generate-plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+if (form) {  // Make sure the form exists (i.e., user is logged in)
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        console.log("Submitting crop data:", data); // DEBUG: check console
+
+        try {
+            const response = await fetch('/generate-plan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            if (result.error) {
+                resultDiv.textContent = result.error;
+                resultDiv.style.display = 'block';
+                return;
+            }
+
+            // Clear previous results
+            resultDiv.innerHTML = '';
+            for (const [key, value] of Object.entries(result)) {
+                const p = document.createElement('p');
+                p.innerHTML = `<strong>${key}:</strong> ${Array.isArray(value) ? value.join(", ") : value}`;
+                resultDiv.appendChild(p);
+            }
+            resultDiv.style.display = 'block';
+
+            // Show dashboard features
+            const dashboardFeatures = document.getElementById('dashboardFeatures');
+            if (dashboardFeatures) {
+                dashboardFeatures.style.display = 'flex';
+            }
+
+        } catch (err) {
+            console.error("Error submitting crop form:", err);
+            resultDiv.textContent = "Something went wrong. Please try again.";
+            resultDiv.style.display = 'block';
+        }
     });
-
-    const result = await response.json();
-
-    if(result.error) {
-        resultDiv.textContent = result.error;
-        resultDiv.style.display = 'block';
-        return;
-    }
-
-    resultDiv.innerHTML = '';
-    for (const [key, value] of Object.entries(result)) {
-        const p = document.createElement('p');
-        p.innerHTML = `<strong>${key}:</strong> ${Array.isArray(value) ? value.join(", ") : value}`;
-        resultDiv.appendChild(p);
-    }
-    resultDiv.style.display = 'block';
-});
+}
 
 
 // Mobile hamburger toggle
@@ -204,7 +250,8 @@ aboutMobile.addEventListener('click', (e) => {
 // Toggle mobile nav + hamburger X
 hamburger.addEventListener("click", () => {
     mobileNav.classList.toggle("active");
-    hamburger.classList.toggle("open"); // <-- needed for X animation
+    hamburger.classList.toggle("open"); // <-- ne
+    
 });
 
 
@@ -222,8 +269,46 @@ if ('serviceWorker' in navigator) {
     .then(reg => console.log("Service Worker Registered:", reg))
     .catch(err => console.error("Service Worker Registration Failed:", err));
 }
-
-
 </script>
+
+<script>
+const themeText = {
+    en: { dark: "🌙 Dark Mode", light: "☀ Light Mode" },
+    te: { dark: "🌙 డార్క్ మోడ్", light: "☀ లైట్ మోడ్" },
+    hi: { dark: "🌙 डार्क मोड", light: "☀ लाइट मोड" },
+    kn: { dark: "🌙 ಡಾರ್ಕ್ ಮೋಡ್", light: "☀ ಲೈಟ್ ಮೋಡ್" }
+};
+
+// Language coming from Flask session
+const lang = "{{ lang }}";
+const toggleBtn = document.getElementById("themeToggle");
+
+// Initialize theme
+window.addEventListener("DOMContentLoaded", () => {
+    const savedTheme = localStorage.getItem("theme") || "light";
+
+    if (savedTheme === "dark") {
+        document.body.classList.add("dark-mode");
+        toggleBtn.textContent = themeText[lang].light;
+    } else {
+        document.body.classList.add("light-mode");
+        toggleBtn.textContent = themeText[lang].dark;
+    }
+});
+
+// Toggle theme
+toggleBtn.addEventListener("click", () => {
+    const isDark = document.body.classList.toggle("dark-mode");
+
+    if (isDark) {
+        toggleBtn.textContent = themeText[lang].light;
+        localStorage.setItem("theme", "dark");
+    } else {
+        toggleBtn.textContent = themeText[lang].dark;
+        localStorage.setItem("theme", "light");
+    }
+});
+</script>
+
 </body>
 </html>
