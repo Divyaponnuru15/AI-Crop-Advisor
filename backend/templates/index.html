@@ -13,14 +13,16 @@
 
 
     <!-- HAMBURGER BUTTON -->
+
 <div class="hamburger" id="hamburger">
   <div></div>
   <div></div>
   <div></div>
 </div>
-<!-- MOBILE HAMBURGER -->
-<nav class="mobile-nav" id="mobileNav">
 
+<!-- MOBILE HAMBURGER -->
+
+<nav class="mobile-nav" id="mobileNav">
   <a href="/">{{ text.home }}</a>
 
   <a href="#" id="aboutMobile">{{ text.how_it_works }}</a>
@@ -49,9 +51,9 @@
 </nav>
 
 <!-- DESKTOP NAVBAR -->
+
 <nav class="top-navbar">
-    
-  <div>
+      <div>
     <a href="/">{{ text.home }}</a>
     <a href="#" id="aboutNav">{{ text.how_it_works }}</a>
     <button id="themeToggle" class="theme-btn">{{ text.dark_mode }}</button>
@@ -84,15 +86,18 @@
 
 
 <!-- Floating Bubbles -->
+
 <div class="bubbles">
     <span></span><span></span><span></span><span></span><span></span><span></span>
 </div>
 
 <!-- Main Container -->
+
 <div class="container">
     <h1>{{ text.title }}</h1>
 
     <!-- About Section -->
+
     <div id="aboutSection" style="display:none;">
         {{ text.about_text }}
     </div>
@@ -102,8 +107,11 @@
 <div id="userContent">
 
     <!-- Crop Form -->
+
     <form id="cropForm">
+
         <!-- SOIL -->
+
         <label>{{ text.soil }}</label>
         <input list="soilOptions" name="soil_type" placeholder="{{ text.soil_placeholder }}" required>
         <datalist id="soilOptions">
@@ -113,6 +121,7 @@
         </datalist>
 
         <!-- CROP -->
+
         <label>{{ text.crop }}</label>
         <input list="cropOptions" name="current_crop" placeholder="{{ text.crop_placeholder }}" required>
         <datalist id="cropOptions">
@@ -122,6 +131,7 @@
         </datalist>
 
         <!-- SEASON -->
+
         <label>{{ text.season }}</label>
         <input list="seasonOptions" name="season" placeholder="{{ text.season_placeholder }}" required>
         <datalist id="seasonOptions">
@@ -131,6 +141,7 @@
         </datalist>
 
         <!-- WATER -->
+
         <label>{{ text.water }}</label>
         <input list="waterOptions" name="water_level" placeholder="{{ text.water_placeholder }}" required>
         <datalist id="waterOptions">
@@ -143,9 +154,11 @@
     </form>
 
     <!-- Result -->
+
     <div id="result"></div>
 
     <!-- Dashboard Features -->
+
     <div id="dashboardFeatures" style="display:none;">
         <button id="saveHistoryBtn">{{ text.save_history }}</button>
         <button id="downloadPdfBtn">{{ text.download_pdf }}</button>
@@ -154,7 +167,8 @@
 
 </div>
 {% else %}
-<!-- User not logged in: show login/register prompt -->
+<!-- User not logged in: show login/register  -->
+
 <div id="notLoggedIn">
     <p>{{ text.login_message }}</p>
     <a href="/login">{{ text.login }}</a> | 
@@ -165,6 +179,7 @@
 <!-- JS -->
 <script>
 // About section toggle
+
 const aboutNav = document.getElementById('aboutNav');
 const aboutSection = document.getElementById('aboutSection');
 aboutNav.addEventListener('click', (e) => {
