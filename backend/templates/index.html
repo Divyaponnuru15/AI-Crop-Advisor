@@ -43,7 +43,9 @@
       <option value="kn">ಕನ್ನಡ</option>
       </select>
   </form>
-
+  <button id="mobileThemeToggle" class="theme-btn" style="margin-top:15px;">
+    {{ text.dark_mode }}
+</button>
 </nav>
 
 <!-- DESKTOP NAVBAR -->
@@ -308,6 +310,15 @@ toggleBtn.addEventListener("click", () => {
         localStorage.setItem("theme", "light");
     }
 });
+</script>
+<script>
+const mobileBtn = document.getElementById("mobileThemeToggle");
+
+if (mobileBtn) {
+    mobileBtn.addEventListener("click", () => {
+        toggleBtn.click(); // triggers desktop theme toggle
+    });
+}
 </script>
 
 </body>
