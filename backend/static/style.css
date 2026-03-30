@@ -530,3 +530,23 @@ body.dark-mode .mobile-nav .theme-btn {
     color: white;
     border: 1px solid rgba(255,255,255,0.6);
 }
+
+/* Desktop button visible only on desktop */
+#themeToggle {
+    display: inline-block;
+}
+
+/* Mobile button hidden by default */
+#mobileThemeToggle {
+    display: none;
+}
+
+/* Show/hide based on screen width */
+@media (max-width: 768px) {
+    #themeToggle {
+        display: none; /* hide desktop button on mobile */
+    }
+    #mobileThemeToggle {
+        display: inline-block; /* show mobile button inside hamburger */
+    }
+}
