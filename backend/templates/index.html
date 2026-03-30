@@ -289,6 +289,7 @@ if ('serviceWorker' in navigator) {
 </script>
 
 <script>
+// Multi-language button text
 const themeText = {
     en: { dark: "🌙 Dark Mode", light: "☀ Light Mode" },
     te: { dark: "🌙 డార్క్ మోడ్", light: "☀ లైట్ మోడ్" },
@@ -296,45 +297,63 @@ const themeText = {
     kn: { dark: "🌙 ಡಾರ್ಕ್ ಮೋಡ್", light: "☀ ಲೈಟ್ ಮೋಡ್" }
 };
 
-// Language coming from Flask session
 const lang = "{{ lang }}";
-const toggleBtn = document.getElementById("themeToggle");
 
-// Initialize theme
-window.addEventListener("DOMContentLoaded", () => {
-    const savedTheme = localStorage.getItem("theme") || "light";
-
-    if (savedTheme === "dark") {
-        document.body.classList.add("dark-mode");
-        toggleBtn.textContent = themeText[lang].light;
-    } else {
-        document.body.classList.add("light-mode");
-        toggleBtn.textContent = themeText[lang].dark;
-    }
-});
-
-// Toggle theme
-toggleBtn.addEventListener("click", () => {
-    const isDark = document.body.classList.toggle("dark-mode");
-
-    if (isDark) {
-        toggleBtn.textContent = themeText[lang].light;
-        localStorage.setItem("theme", "dark");
-    } else {
-        toggleBtn.textContent = themeText[lang].dark;
-        localStorage.setItem("theme", "light");
-    }
-});
-</script>
-<script>
+const desktopBtn = document.getElementById("themeToggle");
 const mobileBtn = document.getElementById("mobileThemeToggle");
 
-if (mobileBtn) {
-    mobileBtn.addEventListener("click", () => {
-        toggleBtn.click(); // triggers desktop theme toggle
-    });
-}
-</script>
+// ---------------------------
+// INITIALIZE THEME
+// ---------------------------
+window.addEventListener("DOMContentLoaded", () => {
+    let savedTheme = localStorage.getItem("theme") || "light";
 
+    document.body.classList.toggle("dark-mode", savedTheme === "dark");
+    document.body.classList.toggle("light-mode", savedTheme === "light");
+
+    updateButtons(savedTheme);
+});
+
+// ---------------------------
+// UPDATE BUTTON TEXTS
+// ---------------------------
+function updateButtons(theme) {
+    if (theme === "dark") {
+        desktopBtn.textContent = themeText[lang].light;
+        mobileBtn.textContent = themeText[lang].light;
+    } else {
+        desktopBtn.textContent = themeText[lang].dark;
+        mobileBtn.textContent = themeText[lang].dark;
+    }
+}
+
+// ---------------------------
+// TOGGLE THEME (SINGLE LOGIC)
+// ---------------------------
+function toggleTheme() {
+    const isDark = document.body.classList.toggle("dark-mode");
+    document.body.classList.toggle("light-mode", !isDark);
+
+    const newTheme = isDark ? "dark" : "light";
+    localStorage.setItem("theme", newTheme);
+
+    updateButtons(newTheme);
+}
+
+// ---------------------------
+// DESKTOP BUTTON
+// ---------------------------
+desktopBtn.addEventListener("click", toggleTheme);
+
+// ---------------------------
+// MOBILE BUTTON
+// ---------------------------
+mobileBtn.addEventListener("click", () => {
+    toggleTheme();
+    // Close menu after switching
+    mobileNav.classList.remove("active");
+    hamburger.classList.remove("open");
+});
+</script>
 </body>
 </html>
