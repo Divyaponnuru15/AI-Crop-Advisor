@@ -478,5 +478,27 @@ body.dark-mode .mobile-nav {
     background: rgba(0, 0, 0, 0.65) !important;
 }
 
+/* ---------------- FORCE HAMBURGER ON MOBILE ---------------- */
+@media (max-width: 768px) {
+    .top-navbar {
+        display: none !important; /* hide desktop navbar */
+    }
+    .hamburger {
+        display: flex !important; /* show hamburger */
+    }
+    .mobile-nav {
+        left: -100%; /* hide menu by default */
+    }
+    .mobile-nav.active {
+        left: 0; /* show menu when active */
+    }
+}
+/* Light mode hamburger bars */
+body.light-mode .hamburger div {
+    background: #2E7D32; /* green for light mode */
+}
 
-
+/* Dark mode hamburger bars */
+body.dark-mode .hamburger div {
+    background: white;
+}
