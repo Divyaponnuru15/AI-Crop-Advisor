@@ -401,8 +401,8 @@ body.dark-mode {
     max-width: 800px;
     padding: 20px;
     border-radius: 12px;
-    background: #f1f1f1;
-    color: rgba(241, 248, 233, 0.747);
+    background: rgb(245, 245, 245);
+    color:black;
 }
 
 .dark-mode #aboutSection {
@@ -468,7 +468,7 @@ body.dark-mode .mobile-nav .theme-btn {
     background: rgba(46, 125, 50, 0.95) !important;
 }
 .mobile-nav a {
-    color: #fff !important;
+    color: #fffffff4 !important;
     font-weight: 600;
 }
 .mobile-nav .theme-btn {
@@ -501,4 +501,9 @@ body.light-mode .hamburger div {
 /* Dark mode hamburger bars */
 body.dark-mode .hamburger div {
     background: white;
+}
+
+/* Make ONLY 'How it Works' white in light mode */
+body.light-mode a.how-it-works {
+    color: rgba(255, 255, 255, 0.434) !important;
 }
