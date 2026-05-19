@@ -10,15 +10,17 @@ body {
 }
 
 /* ---------------- INPUTS ---------------- */
-input, select {
+input,
+select {
     width: 100%;
     padding: 10px 12px;
     margin-top: 5px;
     margin-bottom: 15px;
     border-radius: 8px;
     border: 1px solid #A5D6A7;
-    font-size: 0.95em;
+    font-size: 16px !important;
     background-color: rgba(255, 255, 255, 0.7);
+    box-sizing: border-box;
 }
 
 input::placeholder {
@@ -509,9 +511,34 @@ body.light-mode a.how-it-works {
 }
 
 
+
+
+html, body {
+    width: 100%;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+}
+
 input,
 select,
 button,
 a {
     font-size: 16px;
+}
+
+html,
+body {
+    width: 100%;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+a,
+button {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
