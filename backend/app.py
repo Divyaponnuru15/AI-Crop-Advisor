@@ -14,7 +14,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from agents.rotation_agent import generate_rotation_plan
 
-from flask_mysqldb import MySQL
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from werkzeug.security import generate_password_hash, check_password_hash
 load_dotenv()
 app = Flask(__name__)
@@ -22,13 +23,20 @@ app.secret_key = os.environ.get("SECRET_KEY")
 
 
 #  MYSQL CONFIGURATION
-
-app.config['MYSQL_HOST'] = os.getenv("MYSQLHOST", "localhost")
-app.config['MYSQL_USER'] = os.getenv("MYSQLUSER", "root")
-app.config['MYSQL_PASSWORD'] = os.getenv("MYSQLPASSWORD", "")
-app.config['MYSQL_DB'] = os.getenv("MYSQLDATABASE")
-app.config['MYSQL_PORT'] = int(os.getenv("MYSQLPORT", 3306))
-mysql = MySQL(app)
+DB_HOST = os.getenv("DB_HOST")
+DB_PORT = os.getenv("DB_PORT")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_NAME = os.getenv("DB_NAME")
+def get_db_connection():
+    return psycopg2.connect(
+        host=DB_HOST,
+        port=DB_PORT,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        dbname=DB_NAME,
+        cursor_factory=RealDictCursor
+    )
 
 translations = {
     "en": {
@@ -467,6 +475,7 @@ def set_language():
     session["lang"] = selected_lang
     return redirect("/")
 
+
 @app.route("/generate-plan", methods=["POST"])
 def generate_plan():
 
@@ -479,22 +488,35 @@ def generate_plan():
     season_input = data.get("season", "").strip()
     water_input = data.get("water_level", "").strip()
 
-    soil_type = normalize_soil(reverse_translate(soil_input, "soil_options", lang))
-    current_crop = normalize_crop(reverse_translate(crop_input, "crop_options", lang))
-    season = normalize_season(reverse_translate(season_input, "season_options", lang))
-    water_level = normalize_water(reverse_translate(water_input, "water_options", lang))
+    soil_type = normalize_soil(
+        reverse_translate(soil_input, "soil_options", lang)
+    )
 
-    # Dynamic validation
+    current_crop = normalize_crop(
+        reverse_translate(crop_input, "crop_options", lang)
+    )
+
+    season = normalize_season(
+        reverse_translate(season_input, "season_options", lang)
+    )
+
+    water_level = normalize_water(
+        reverse_translate(water_input, "water_options", lang)
+    )
+
+    # Validation
     if not soil_type:
-     return jsonify({"error": "Please enter valid soil type"})
-    if not current_crop:
-     return jsonify({"error": "Please enter valid crop name"})
-    if not season:
-     return jsonify({"error": "Please enter valid season"})
-    if not water_level:
-     return jsonify({"error": "Please enter valid water level"})
+        return jsonify({"error": "Please enter valid soil type"})
 
-       
+    if not current_crop:
+        return jsonify({"error": "Please enter valid crop name"})
+
+    if not season:
+        return jsonify({"error": "Please enter valid season"})
+
+    if not water_level:
+        return jsonify({"error": "Please enter valid water level"})
+
     try:
 
         result = generate_rotation_plan(
@@ -512,18 +534,32 @@ def generate_plan():
             return jsonify({
                 "error": "Model did not return valid JSON"
             })
-        
+
         # SAVE HISTORY ONLY IF USER LOGGED IN
         if "user_id" in session:
+
             user_id = session["user_id"]
 
-            cur = mysql.connection.cursor()
-            recommendations = result.get("recommended_crops", [])  # fallback to empty list
+            # Extract recommended crops
+            recommendations = result.get(
+                "recommended_crops", []
+            )
+
+            conn = get_db_connection()
+            cur = conn.cursor()
 
             cur.execute("""
             INSERT INTO crop_history
-            (user_id, soil_type, current_crop, season, water_level, recommendation, created_at)
-            VALUES (%s,%s,%s,%s,%s,%s,NOW())
+            (
+                user_id,
+                soil_type,
+                current_crop,
+                season,
+                water_level,
+                recommendation,
+                created_at
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, NOW())
             """, (
             user_id,
             soil_type,
@@ -531,17 +567,17 @@ def generate_plan():
             season,
             water_level,
             ",".join(recommendations)
-            ))
+                    ))
 
-            mysql.connection.commit()
+            conn.commit()
             cur.close()
-        else:
-            print("Guest user, crop history not saved.")
-
-        
+            conn.close()
 
         # Translate keys
-        translated_result = translate_keys(result, lang)
+        translated_result = translate_keys(
+            result,
+            lang
+        )
 
         return jsonify(translated_result)
 
@@ -554,7 +590,9 @@ def generate_plan():
         })
 
 
-@app.route("/register", methods=["GET","POST"])
+
+
+@app.route("/register", methods=["GET", "POST"])
 def register():
 
     lang = session.get("lang", "en")
@@ -568,20 +606,41 @@ def register():
 
         hashed_password = generate_password_hash(password)
 
-        cur = mysql.connection.cursor()
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # Check email already exists
         cur.execute(
-            "INSERT INTO users (name, email, password) VALUES (%s,%s,%s)",
-            (name,email,hashed_password)
+            "SELECT * FROM users WHERE email=%s",
+            (email,)
         )
 
-        mysql.connection.commit()
+        existing_user = cur.fetchone()
+
+        if existing_user:
+            cur.close()
+            conn.close()
+            return "Email already exists"
+
+        # Insert user
+        cur.execute(
+            """
+            INSERT INTO users (name, email, password)
+            VALUES (%s, %s, %s)
+            """,
+            (name, email, hashed_password)
+        )
+
+        conn.commit()
+
         cur.close()
+        conn.close()
 
         return redirect("/login")
 
-    return render_template("register.html",text=text)
+    return render_template("register.html", text=text)
 
-@app.route("/login", methods=["GET","POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
 
     lang = session.get("lang", "en")
@@ -592,22 +651,30 @@ def login():
         email = request.form["email"]
         password = request.form["password"]
 
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT * FROM users WHERE email=%s",(email,))
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute(
+            "SELECT * FROM users WHERE email=%s",
+            (email,)
+        )
+
         user = cur.fetchone()
+
         cur.close()
+        conn.close()
 
-        if user and check_password_hash(user[3],password):
+        if user and check_password_hash(user["password"], password):
 
-            session["user_id"]=user[0]
-            session["user_name"]=user[1]
+            session["user_id"] = user["id"]
+            session["user_name"] = user["name"]
 
             return redirect("/dashboard")
 
         else:
             return "Invalid credentials"
 
-    return render_template("login.html",text=text)
+    return render_template("login.html", text=text)
 
 @app.route("/logout")
 def logout():
@@ -617,113 +684,116 @@ from collections import Counter
 
 @app.route("/dashboard")
 def dashboard():
+
     if "user_id" not in session:
         return redirect("/login")
 
-    lang=session.get("lang","en")
-    text=translations.get(lang,translations["en"])
+    lang = session.get("lang", "en")
+    text = translations.get(lang, translations["en"])
 
-    user_id=session["user_id"]
+    user_id = session["user_id"]
 
-    cur=mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
 
     # User Info
     cur.execute(
-    "SELECT name,email,created_at FROM users WHERE id=%s",
-    (user_id,)
+        """
+        SELECT id, name, email, created_at
+        FROM users
+        WHERE id=%s
+        """,
+        (user_id,)
     )
 
     user = cur.fetchone()
 
-    
-    if user and user[2] is None:
-     from datetime import datetime
-     user = (user[0], user[1], datetime.now())
-   
+    if user and user["created_at"] is None:
+        from datetime import datetime
+        user["created_at"] = datetime.now()
 
     # Crop History
     cur.execute("""
-    SELECT soil_type,current_crop,season,water_level,recommendation,created_at,id
+    SELECT soil_type,current_crop,season,
+    water_level,recommendation,
+    created_at,id
     FROM crop_history
     WHERE user_id=%s
     ORDER BY id DESC
-    """,(user_id,))
-
-    history=cur.fetchall()
+    """, (user_id,))
+    history = cur.fetchall()
 
     cur.close()
+    conn.close()
 
-    # --- Calculate Soil Benefit Scores dynamically ---
+    # Soil Benefit Calculation
     soil_benefits_dict = {}
 
     for row in history:
-        soil = (row[0] or "").lower()
-        recommendations = (row[4] or "").split(",")
+
+        soil = (row["soil_type"] or "").lower()
+        recommendations = (
+            row["recommendation"] or ""
+        ).split(",")
 
         for crop in recommendations:
+
             crop = crop.strip().lower()
 
             if not crop:
-               continue
+                continue
 
-        # Initialize
             if crop not in soil_benefits_dict:
-               soil_benefits_dict[crop] = 0
+                soil_benefits_dict[crop] = 0
 
-        # Soil weight
             soil_weights = {
-               "loamy": 3,
-               "black": 2,
+                "loamy": 3,
+                "black": 2,
                 "clay": 1.5,
                 "sandy": 1
             }
 
             score = soil_weights.get(soil, 1)
 
-        # Diversity bonus
             score += len(set(recommendations)) * 0.5
 
-        
             soil_benefits_dict[crop] += score
 
-    
-    if not soil_benefits_dict:
-        soil_benefits_dict ={}
-
-    # --- Prepare data for Chart.js ---
     labels = list(soil_benefits_dict.keys())
     soil_benefits = list(soil_benefits_dict.values())
 
-    
+    return render_template(
+        "dashboard.html",
+        user=user,
+        history=history,
+        text=text,
+        labels=labels,
+        soil_benefits=soil_benefits
+    )
 
-    return render_template("dashboard.html",
-                           user=user,
-                           history=history,
-                           text=text,
-                           labels=labels,
-                           soil_benefits=soil_benefits)
 @app.route("/delete-history/<int:id>")
 def delete_history(id):
 
     if "user_id" not in session:
         return redirect("/login")
 
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
 
-    cur.execute("DELETE FROM crop_history WHERE id=%s",(id,))
+    cur.execute(
+       """
+       DELETE FROM crop_history
+       WHERE id=%s AND user_id=%s
+       """,
+       (id, session["user_id"])
+    )
 
-    mysql.connection.commit()
+    conn.commit()
 
     cur.close()
+    conn.close()
 
     return redirect("/dashboard")
-
-
-@app.route("/offline.html")
-def offline():
-    return render_template("offline.html")
-
-
 
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
@@ -736,7 +806,7 @@ import ast
 from datetime import datetime
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import ttfonts, pdfmetrics
-import io, os
+
 
 @app.route('/download_result', methods=['POST'])
 def download_result():

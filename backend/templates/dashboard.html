@@ -125,11 +125,18 @@ th{
     <!-- Theme Toggle -->
     <button id="themeToggle" class="theme-btn">🌙 Dark Mode</button>
 
-    <h2>{{text.welcome}} <span id="username">{{user[0]}}</span></h2>
+    <h2>
+    {{ text.welcome }}
+    <span id="username">{{ user.name }}</span>
+</h2>
 
-    <p>{{text.email}} : {{user[1]}}</p>
-    <p>{{text.member_since}} : {{ user[2].strftime("%d %B %Y") if user[2] else "Not Available" }}</p>
+<p>{{ text.email }} : {{ user.email }}</p>
 
+<p>
+    {{ text.member_since }} :
+    {{ user.created_at.strftime("%d %B %Y")
+       if user.created_at else "Not Available" }}
+</p>
     <br>
 
     <a href="/"><button class="home">{{text.home}}</button></a>
@@ -159,33 +166,57 @@ th{
     </tr>
 
     {% for row in history %}
-    <tr>
-        <td>{{text.soil_options.get(row[0], row[0])}}</td>
-        <td>{{text.crop_options.get(row[1], row[1])}}</td>
-        <td>{{text.season_options.get(row[2], row[2])}}</td>
-        <td>{{text.water_options.get(row[3], row[3])}}</td>
-        <td>{{row[4]}}</td>
-        <td>{{row[5]}}</td>
-        <td>
-            <button onclick="confirmDelete('{{ row[6] }}')" 
-                style="background:red;color:white;border:none;padding:5px 10px;">
-                {{ text.delete }}
+<tr>
+    <td>{{ text.soil_options.get(row.soil_type, row.soil_type) }}</td>
+
+    <td>{{ text.crop_options.get(row.current_crop, row.current_crop) }}</td>
+
+    <td>{{ text.season_options.get(row.season, row.season) }}</td>
+
+    <td>{{ text.water_options.get(row.water_level, row.water_level) }}</td>
+
+    <td>{{ row.recommendation }}</td>
+
+    <td>
+        {{ row.created_at.strftime("%d-%m-%Y") if row.created_at else "N/A" }}
+    </td>
+
+    <td>
+        <button
+            onclick="confirmDelete('{{ row.id }}')"
+            style="background:red;color:white;border:none;padding:5px 10px;">
+            {{ text.delete }}
+        </button>
+
+        <form action="/download_result"
+              method="POST"
+              style="display:inline-block;">
+
+            <input type="hidden" name="crop"
+                   value="{{ row.current_crop }}">
+
+            <input type="hidden" name="soil"
+                   value="{{ row.soil_type }}">
+
+            <input type="hidden" name="water"
+                   value="{{ row.water_level }}">
+
+            <input type="hidden" name="season"
+                   value="{{ row.season }}">
+
+            <input type="hidden"
+                   name="recommended"
+                   value="{{ row.recommendation }}">
+
+            <button type="submit"
+                    style="background:green;color:white;border:none;padding:5px 10px;">
+                Download PDF
             </button>
-            <form action="/download_result" method="POST" style="display:inline-block;">
-                <input type="hidden" name="crop" value="{{ row[1] }}">
-                <input type="hidden" name="soil" value="{{ row[0] }}">
-                <input type="hidden" name="water" value="{{ row[3] }}">
-                <input type="hidden" name="season" value="{{ row[2] }}">
-                <input type="hidden" name="recommended" 
-                       value="{{ row[4] | default('') | replace('[','') | replace(']','') | replace('\'','') }}">
-                <button type="submit" style="background:green;color:white;border:none;padding:5px 10px;">
-                    Download PDF
-                </button>
-            </form>
-        </td>
-    </tr>
-    {% endfor %}
-    </table>
+        </form>
+    </td>
+</tr>
+{% endfor %}
+</table>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
