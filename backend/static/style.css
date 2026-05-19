@@ -507,3 +507,11 @@ body.dark-mode .hamburger div {
 body.light-mode a.how-it-works {
     color: rgba(255, 255, 255, 0.434) !important;
 }
+
+
+input,
+select,
+button,
+a {
+    font-size: 16px;
+}
