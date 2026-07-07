@@ -13,8 +13,28 @@ AI Crop Advisor is an intelligent web application that assists farmers in select
 The project focuses on improving crop planning, supporting sustainable farming practices, and making agricultural guidance more accessible through an easy-to-use web interface.
 
 
+## 🏠 Application Interface
+<img width="1919" height="906" alt="ai-crop-advisor" src="https://github.com/user-attachments/assets/97eed183-849a-472d-9ad3-efe9c182f0a6" />
 
-<img width="1913" height="1017" alt="Screenshot 2026-07-07 134836" src="https://github.com/user-attachments/assets/688d9d0f-2ef4-4d68-b4fe-f41c6d5bba96" />
+ ### 📊 Recommendation Results
+<img width="1903" height="1017" alt="Screenshot 2026-07-07 144914" src="https://github.com/user-attachments/assets/58e650c4-b38b-457d-8730-7d8a338c8343" />
+
+### 📊 Recommendation History Dashboard
+<img width="1919" height="1016" alt="Screenshot 2026-07-07 145102" src="https://github.com/user-attachments/assets/f75fe1ba-a328-4bb0-8a6d-d61bd34cec4b" />
+
+### 🌍 Multi-language Accessibility
+<img width="1919" height="1018" alt="Screenshot 2026-07-07 145412" src="https://github.com/user-attachments/assets/31da3793-8654-4003-91ed-b3fd12a8a962" />
+
+<img width="1919" height="1019" alt="Screenshot 2026-07-07 145449" src="https://github.com/user-attachments/assets/b167d868-930a-432f-a712-92c977709029" />
+
+<img width="1917" height="1009" alt="Screenshot 2026-07-07 145538" src="https://github.com/user-attachments/assets/298c7ea7-ed3b-4867-92fa-8307d720c180" />
+
+Supported Languages:
+- English
+- Telugu
+- Hindi
+- Kannada
+
 
 ## ✨ Features
 
@@ -55,26 +75,64 @@ The project focuses on improving crop planning, supporting sustainable farming p
 ### Deployment
 - Render
 
-### Version Control 
+###  Development Tools
 - Git
 - GitHub
 - Visual Studio Code
-- 
 
-## ⚙️ Installation
 
-1. Clone the repository
+## 🧑‍💻 Local Setup
 
-git clone ...
+### Prerequisites
+- Python 3.9+
+- Git
+- A Groq API key
+- A Supabase project (URL + API key)
 
-2. Navigate to the project directory
+### Clone the repository
+```bash
+git clone https://github.com/Divyaponnuru15/AI-Crop-Advisor.git
+cd AI-Crop-Advisor
+```
 
-3. Install dependencies
+### Backend Setup
 
+**1. Create a virtual environment**
+```bash
+python -m venv venv
+```
+
+**2. Activate the virtual environment**
+
+Windows:
+```bash
+venv\Scripts\activate
+```
+
+macOS/Linux:
+```bash
+source venv/bin/activate
+```
+
+**3. Install dependencies**
+```bash
 pip install -r requirements.txt
+```
 
-4. Configure environment variables
+**4. Create a `.env` file in the project root**
+```env
+GROQ_API_KEY=your_groq_api_key
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_key
+```
 
-5. Run the application
-
+**5. Start the Flask server**
+```bash
 python app.py
+```
+
+**6. Open the app**
+```
+http://127.0.0.1:5000
+```
+
